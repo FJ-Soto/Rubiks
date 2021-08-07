@@ -13,15 +13,15 @@ class RubikCanvas(Canvas):
 
         self.edge_points = [matrix([[-1], [-1], [1]]), matrix([[1], [-1], [1]]),
                             matrix([[1], [1], [1]]), matrix([[-1], [1], [1]]),
-                            matrix([[-1], [1], [-1]]), matrix([[1], [1], [-1]]),
-                            matrix([[1], [-1], [-1]]), matrix([[-1], [-1], [-1]])]
+                            matrix([[-1], [1], [-1]]), matrix([[1], [-1], [-1]]),
+                            matrix([[1], [1], [-1]]), matrix([[-1], [-1], [-1]])]
 
         self.d_lines = []
-        self.d_points = []:wq
+        self.d_points = []
 
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.onDrag)
-        self.xtheta = 0
+        self.xtheta = 30
         self.ytheta = 0
         self.ztheta = 0
         self.curLastPos = None
@@ -41,9 +41,7 @@ class RubikCanvas(Canvas):
         self.xtheta += tan((self.curLastPos.x - e.x_root) / SIDE_WIDTH)
         self.curLastPos.x = e.x_root
         self.curLastPos.y = e.y_root
-
         self.draw_cube()
-        print(self.edge_points[0], e.x_root, e.y_root)
 
     # TODO: Investigate a possible fix for the perspective skew.
     def draw_cube(self, rad=DOT_RAD):
@@ -55,13 +53,20 @@ class RubikCanvas(Canvas):
 
             _prev_point = self.projected_point(self.edge_points[i - 1])
 
-            self.coords(self.d_lines[i], int(_p[0]), int(_p[1]), int(_prev_point[0]), int(_prev_point[1]))
+            # self.coords(self.d_lines[i], int(_p[0]), int(_p[1]), int(_prev_point[0]), int(_prev_point[1]))
 
             # adjust for depth
             if int(_p[2]) < 0:
                 self.tag_lower(self.d_points[i])
             else:
                 self.tag_raise(self.d_points[i])
+
+            if i % 4 == 0:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 3])
+                self.coords(self.d_lines[i // 2], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+            elif (i - 1) % 4 == 0:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 1])
+                self.coords(self.d_lines[(i - 5) // 2 + 1], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
 
     def initialize_cube(self, rad=DOT_RAD):
         """
@@ -79,8 +84,12 @@ class RubikCanvas(Canvas):
             else:
                 self.tag_raise(self.d_points[-1])
 
-            _p2 = self.projected_point(self.edge_points[i - 1])
-            self.d_lines.append(self.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill=OUT_CLR))
+            if i % 4 == 0:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 3])
+                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+            elif (i - 1) % 4 == 0:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 1])
+                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
 
     def projected_point(self, p):
         _p = rot_x(p, self.ytheta)
