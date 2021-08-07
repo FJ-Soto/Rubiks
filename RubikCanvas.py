@@ -1,6 +1,6 @@
 from tkinter import *
 
-from numpy import matrix, tan, dot, add
+from numpy import matrix, tan, dot, add, sqrt, square
 
 from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
 from CONSTANTS import T_CON, M_CON, D_CON, CUBE, OCTANTS
@@ -37,18 +37,10 @@ class RubikCanvas(Canvas):
 
         octant = OCTANTS[(sign_p(int(foc_p[0])), sign_p(int(foc_p[1])), sign_p(int(foc_p[2])))]
 
-        # TESTING = False
-        # if TESTING:
-        #     if True:
-        #         self.ytheta += tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
-        #         self.xtheta += tan((self.last_pos.x - e.x_root) / SIDE_WIDTH)
-        #         self.ztheta += tan(1 / SIDE_WIDTH)
-        #     else:
-        #         self.ytheta += tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
-        #         self.xtheta += tan((self.last_pos.x - e.x_root) / SIDE_WIDTH)
-        # else:
-        self.ytheta += tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
-        self.xtheta += tan((self.last_pos.x - e.x_root) / SIDE_WIDTH)
+        d_x, d_y = -tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+
+        self.xtheta += d_x
+        self.ytheta += d_y
 
         self.last_pos.x = e.x_root
         self.last_pos.y = e.y_root
@@ -132,7 +124,7 @@ class RubikCanvas(Canvas):
 
     def projected_point(self, p, shift=True):
         _p = rot_x(p, self.ytheta)
-        _p = rot_y(_p, -self.xtheta)
+        _p = rot_y(_p, self.xtheta)
         _p *= SIDE_WIDTH
         return add(_p, matrix([[int(CENT_POINT[0])], [int(CENT_POINT[1])], [0]])) if shift else _p
 
