@@ -71,7 +71,6 @@ class RubikCanvas(Canvas):
             # for obj in self.draw_line(self.projected_point(self.edge_points[i - 1]), _p):
             #     self.edge_points.append(obj)
 
-
     def projected_point(self, p):
         _p = rot_x(p, self.ytheta)
         _p = rot_y(_p, -self.xtheta)
@@ -132,18 +131,5 @@ def rot_y(p, theta=90):
 def rot_z(p, theta=90):
     return rot(p, theta, 'z')
 
-
-def flatten_list(_2d_list):
-    flat_list = []
-    # Iterate through the outer list
-    for element in _2d_list:
-        if type(element) is list:
-            # If the element is of type list, iterate through the sublist
-            for item in element:
-                flat_list.append(item)
-        else:
-            flat_list.append(int(element[0]))
-    print(flat_list)
-    return flat_list
 
 
