@@ -1,6 +1,6 @@
 from tkinter import *
 
-from numpy import matrix, cos, sin, tan, dot, add, abs, sign
+from numpy import matrix, tan, dot, add
 
 from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
 from Coordinate import Coordinate
@@ -17,7 +17,7 @@ class RubikCanvas(Canvas):
                             matrix([[1], [-1], [-1]]), matrix([[-1], [-1], [-1]])]
 
         self.d_lines = []
-        self.d_points = []
+        self.d_points = []:wq
 
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.onDrag)
