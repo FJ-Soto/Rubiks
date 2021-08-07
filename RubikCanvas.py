@@ -16,16 +16,18 @@ class RubikCanvas(Canvas):
                             matrix([[-1], [1], [-1]]), matrix([[1], [1], [-1]]),
                             matrix([[1], [-1], [-1]]), matrix([[-1], [-1], [-1]])]
 
-        self.cube_drawing = []
-        # self.draw_cube()
+        self.d_lines = []
+        self.d_points = []
+
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.onDrag)
         self.xtheta = 0
         self.ytheta = 0
         self.ztheta = 0
         self.curLastPos = None
-        self.draw_cube()
-        self.draw_point(CENT_POINT)
+
+        self.initialize_cube()
+        # self.draw_point(CENT_POINT)
 
     def set_xy(self, e):
         if self.curLastPos is None:
@@ -49,27 +51,25 @@ class RubikCanvas(Canvas):
 
     # TODO: Investigate a possible fix for the perspective skew.
     def draw_cube(self):
-        # clear drawings for redraw
-        if self.cube_drawing:
-            for drawing in self.cube_drawing:
-                self.delete(drawing)
-                del drawing
+        for i, point in enumerate(self.edge_points):
+            _p = self.projected_point(point)
 
+            # move instead of redraw to improve performance and memory usage
+            self.moveto(self.d_points[i], int(_p[0]), int(_p[1]))
+
+    def initialize_cube(self):
         for i, point in enumerate(self.edge_points):
             _p = self.projected_point(point)
             # store drawing for deletion
-            self.cube_drawing.append(self.draw_point(_p, color=DEBUG_CLRS[i], rad=5))
+            self.d_points.append(self.draw_point(_p, color=DEBUG_CLRS[i], rad=5))
 
             # account for depth
             if int(_p[2]) < 0:
-                self.tag_lower(self.cube_drawing[-1])
+                self.tag_lower(self.d_points[-1])
             else:
-                self.tag_raise(self.cube_drawing[-1])
+                self.tag_raise(self.d_points[-1])
 
-            self.cube_drawing.append(self.draw_line(self.projected_point(self.edge_points[i - 1]), _p))
-
-            # for obj in self.draw_line(self.projected_point(self.edge_points[i - 1]), _p):
-            #     self.edge_points.append(obj)
+            self.d_lines.append(self.draw_line(self.projected_point(self.edge_points[i - 1]), _p))
 
     def projected_point(self, p):
         _p = rot_x(p, self.ytheta)

@@ -1,6 +1,6 @@
 from tkinter import *
 
-from CONSTANTS import APP_BG, SIDE_WIDTH
+from CONSTANTS import APP_BG
 from RubikCanvas import RubikCanvas
 
 if __name__ == '__main__':
