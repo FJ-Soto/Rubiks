@@ -3,6 +3,7 @@ from tkinter import *
 from numpy import matrix, tan, dot, add
 
 from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
+from CONSTANTS import T_CON, M_CON, D_CON
 from Coordinate import Coordinate
 
 
@@ -12,9 +13,9 @@ class RubikCanvas(Canvas):
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
         self.edge_points = [matrix([[-1], [-1], [1]]), matrix([[1], [-1], [1]]),
-                            matrix([[1], [1], [1]]), matrix([[-1], [1], [1]]),
+                            matrix([[-1], [1], [1]]), matrix([[1], [1], [1]]),
                             matrix([[-1], [1], [-1]]), matrix([[1], [-1], [-1]]),
-                            matrix([[1], [1], [-1]]), matrix([[-1], [-1], [-1]])]
+                            matrix([[-1], [-1], [-1]]), matrix([[1], [1], [-1]])]
 
         self.d_lines = []
         self.d_points = []
@@ -45,6 +46,7 @@ class RubikCanvas(Canvas):
 
     # TODO: Investigate a possible fix for the perspective skew.
     def draw_cube(self, rad=DOT_RAD):
+        l_count = 0
         for i, point in enumerate(self.edge_points):
             _p = self.projected_point(point)
 
@@ -53,20 +55,27 @@ class RubikCanvas(Canvas):
 
             _prev_point = self.projected_point(self.edge_points[i - 1])
 
-            # self.coords(self.d_lines[i], int(_p[0]), int(_p[1]), int(_prev_point[0]), int(_prev_point[1]))
-
             # adjust for depth
             if int(_p[2]) < 0:
                 self.tag_lower(self.d_points[i])
             else:
                 self.tag_raise(self.d_points[i])
 
-            if i % 4 == 0:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 3])
-                self.coords(self.d_lines[i // 2], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
-            elif (i - 1) % 4 == 0:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 1])
-                self.coords(self.d_lines[(i - 5) // 2 + 1], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+            if i in T_CON:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[T_CON[i]])
+                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+                l_count += 1
+
+            if i in M_CON:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[M_CON[i]])
+                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+                l_count += 1
+
+            if i in D_CON:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[D_CON[i]])
+                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+                l_count += 1
+
 
     def initialize_cube(self, rad=DOT_RAD):
         """
@@ -84,11 +93,16 @@ class RubikCanvas(Canvas):
             else:
                 self.tag_raise(self.d_points[-1])
 
-            if i % 4 == 0:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 3])
+            if i in T_CON:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[T_CON[i]])
                 self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
-            elif (i - 1) % 4 == 0:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[i + 1])
+
+            if i in M_CON:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[M_CON[i]])
+                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+
+            if i in D_CON:
+                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[D_CON[i]])
                 self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
 
     def projected_point(self, p):

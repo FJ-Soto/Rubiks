@@ -22,3 +22,18 @@ ROTATIONS = {'x': lambda t: matrix([[1, 0, 0], [0, cos(t), -sin(t)], [0, sin(t),
 
 DEBUG_CLRS = {0: 'RED', 1: 'ORANGE', 2: 'YELLOW', 3: 'GREEN',
               4: 'BLUE', 5: 'PINK', 6: 'PURPLE', 7: 'BROWN'}
+
+
+T_CON = {0: 1,
+         1: 5,
+         5: 6,
+         6: 0}
+D_CON = {2: 3,
+         3: 7,
+         7: 4,
+         4: 2}
+
+M_CON = {0: 2,
+         1: 3,
+         5: 7,
+         6: 4}
