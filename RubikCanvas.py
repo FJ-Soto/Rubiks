@@ -3,7 +3,7 @@ from tkinter import *
 from numpy import matrix, tan, dot, add
 
 from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
-from CONSTANTS import T_CON, M_CON, D_CON
+from CONSTANTS import T_CON, M_CON, D_CON, CUBE, OCTANTS
 from Coordinate import Coordinate
 
 
@@ -12,48 +12,73 @@ class RubikCanvas(Canvas):
         super().__init__(master=master, width=width, height=width)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
-        self.edge_points = [matrix([[-1], [-1], [1]]), matrix([[1], [-1], [1]]),
-                            matrix([[-1], [1], [1]]), matrix([[1], [1], [1]]),
-                            matrix([[-1], [1], [-1]]), matrix([[1], [-1], [-1]]),
-                            matrix([[-1], [-1], [-1]]), matrix([[1], [1], [-1]])]
+        self.xtheta = 0
+        self.ytheta = 0
+        self.ztheta = 0
 
         self.d_lines = []
         self.d_points = []
+        self.last_pos = None
 
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.onDrag)
-        self.xtheta = 30
-        self.ytheta = 0
-        self.ztheta = 0
-        self.curLastPos = None
 
         self.initialize_cube()
-        # self.draw_point(CENT_POINT)
 
     def set_xy(self, e):
-        if self.curLastPos is None:
-            self.curLastPos = Coordinate(x=e.x_root, y=e.y_root)
+        if self.last_pos is None:
+            self.last_pos = Coordinate(x=e.x_root, y=e.y_root)
         else:
-            self.curLastPos.x = e.x_root
-            self.curLastPos.y = e.y_root
+            self.last_pos.x = e.x_root
+            self.last_pos.y = e.y_root
 
     def onDrag(self, e):
-        self.ytheta += tan((self.curLastPos.y - e.y_root) / SIDE_WIDTH)
-        self.xtheta += tan((self.curLastPos.x - e.x_root) / SIDE_WIDTH)
-        self.curLastPos.x = e.x_root
-        self.curLastPos.y = e.y_root
+        foc_p = self.projected_point(CUBE[0], False)
+
+        octant = OCTANTS[(sign_p(int(foc_p[0])), sign_p(int(foc_p[1])), sign_p(int(foc_p[2])))]
+
+        # TESTING = False
+        # if TESTING:
+        #     if True:
+        #         self.ytheta += tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        #         self.xtheta += tan((self.last_pos.x - e.x_root) / SIDE_WIDTH)
+        #         self.ztheta += tan(1 / SIDE_WIDTH)
+        #     else:
+        #         self.ytheta += tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        #         self.xtheta += tan((self.last_pos.x - e.x_root) / SIDE_WIDTH)
+        # else:
+        self.ytheta += tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        self.xtheta += tan((self.last_pos.x - e.x_root) / SIDE_WIDTH)
+
+        self.last_pos.x = e.x_root
+        self.last_pos.y = e.y_root
         self.draw_cube()
 
     # TODO: Investigate a possible fix for the perspective skew.
     def draw_cube(self, rad=DOT_RAD):
         l_count = 0
-        for i, point in enumerate(self.edge_points):
+        for i, point in enumerate(CUBE):
+            # use a dictionary to determine how the lines should be connected
+            # follow T -> M -> D to ensure that l_count is in sync to the order in which the lines where added
+            if i in T_CON:
+                _p1, _p2 = self.projected_point(CUBE[i]), self.projected_point(CUBE[T_CON[i]])
+                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+                l_count += 1
+
+            if i in M_CON:
+                _p1, _p2 = self.projected_point(CUBE[i]), self.projected_point(CUBE[M_CON[i]])
+                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+                l_count += 1
+
+            if i in D_CON:
+                _p1, _p2 = self.projected_point(CUBE[i]), self.projected_point(CUBE[D_CON[i]])
+                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
+                l_count += 1
+
             _p = self.projected_point(point)
 
             # move instead of redraw to improve performance and memory usage
             self.coords(self.d_points[i], as_dot(_p))
-
-            _prev_point = self.projected_point(self.edge_points[i - 1])
 
             # adjust for depth
             if int(_p[2]) < 0:
@@ -61,27 +86,39 @@ class RubikCanvas(Canvas):
             else:
                 self.tag_raise(self.d_points[i])
 
-            if i in T_CON:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[T_CON[i]])
-                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
-                l_count += 1
-
-            if i in M_CON:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[M_CON[i]])
-                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
-                l_count += 1
-
-            if i in D_CON:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[D_CON[i]])
-                self.coords(self.d_lines[l_count], int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]))
-                l_count += 1
-
-
     def initialize_cube(self, rad=DOT_RAD):
         """
         This method initializes the Rubik's cube drawing--necessary to avoid null-referencing.
         """
-        for i, point in enumerate(self.edge_points):
+        for i, point in enumerate(CUBE):
+            # connect lines
+            if i in T_CON:
+                _p1, _p2 = self.projected_point(CUBE[i]), self.projected_point(CUBE[T_CON[i]])
+                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+
+                if int(_p1[2]) > 0 or int(_p2[2]) > 0:
+                    self.tag_raise(self.d_lines[-1])
+                else:
+                    self.tag_lower(self.d_lines[-1])
+
+            if i in M_CON:
+                _p1, _p2 = self.projected_point(CUBE[i]), self.projected_point(CUBE[M_CON[i]])
+                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+
+                if int(_p1[2]) > 0 or int(_p2[2]) > 0:
+                    self.tag_raise(self.d_lines[-1])
+                else:
+                    self.tag_lower(self.d_lines[-1])
+
+            if i in D_CON:
+                _p1, _p2 = self.projected_point(CUBE[i]), self.projected_point(CUBE[D_CON[i]])
+                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+
+                if int(_p1[2]) > 0 or int(_p2[2]) > 0:
+                    self.tag_raise(self.d_lines[-1])
+                else:
+                    self.tag_lower(self.d_lines[-1])
+
             _p = self.projected_point(point)
 
             # store drawing for deletion
@@ -93,24 +130,11 @@ class RubikCanvas(Canvas):
             else:
                 self.tag_raise(self.d_points[-1])
 
-            if i in T_CON:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[T_CON[i]])
-                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
-
-            if i in M_CON:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[M_CON[i]])
-                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
-
-            if i in D_CON:
-                _p1, _p2 = self.projected_point(self.edge_points[i]), self.projected_point(self.edge_points[D_CON[i]])
-                self.d_lines.append(self.create_line(int(_p1[0]), int(_p1[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
-
-    def projected_point(self, p):
+    def projected_point(self, p, shift=True):
         _p = rot_x(p, self.ytheta)
         _p = rot_y(_p, -self.xtheta)
         _p *= SIDE_WIDTH
-        _p = add(_p, matrix([[int(CENT_POINT[0])], [int(CENT_POINT[1])], [0]]))
-        return _p
+        return add(_p, matrix([[int(CENT_POINT[0])], [int(CENT_POINT[1])], [0]])) if shift else _p
 
 
 def as_dot(p, rad=DOT_RAD):
@@ -131,6 +155,10 @@ def rot_y(p, theta=90):
 
 def rot_z(p, theta=90):
     return rot(p, theta, 'z')
+
+
+def sign_p(v):
+    return -1 if v < 0 else 1
 
 
 
