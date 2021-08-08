@@ -1,6 +1,6 @@
 from tkinter import *
 
-from numpy import matrix, tan, dot, add, sqrt, square
+from numpy import matrix, tan, dot, add, pi
 
 from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
 from CONSTANTS import T_CON, M_CON, D_CON, CUBE, OCTANTS
@@ -14,7 +14,6 @@ class RubikCanvas(Canvas):
 
         self.xtheta = 0
         self.ytheta = 0
-        self.ztheta = 0
 
         self.d_lines = []
         self.d_points = []
@@ -24,6 +23,32 @@ class RubikCanvas(Canvas):
         self.bind("<B1-Motion>", self.onDrag)
 
         self.initialize_cube()
+
+    @property
+    def xtheta(self):
+        return self._xtheta
+
+    @xtheta.setter
+    def xtheta(self, v):
+        if -2 * pi <= v <= 2 * pi:
+            self._xtheta = v
+        elif -2 * pi > v:
+            self._xtheta = v + (2 * pi)
+        else:
+            self._xtheta = v - (2 * pi)
+
+    @property
+    def ytheta(self):
+        return self._ytheta
+
+    @ytheta.setter
+    def ytheta(self, v):
+        if -2 * pi <= v <= 2 * pi:
+            self._ytheta = v
+        elif -2 * pi > v:
+            self._ytheta = v + (2 * pi)
+        else:
+            self._ytheta = v - (2 * pi)
 
     def set_xy(self, e):
         """
@@ -40,13 +65,8 @@ class RubikCanvas(Canvas):
     def onDrag(self, e):
         """
         This is the command that triggers when dragging on the canvas. This makes sure that
-        the change in axis calls for trasformation of the cube.
+        the change in axis calls for transformation of the cube.
         """
-        foc_p = self.projected_point(CUBE[0], False)
-
-        octant = OCTANTS[(sign_p(int(foc_p[0])), sign_p(int(foc_p[1])), sign_p(int(foc_p[2])))]
-        print(octant)
-
         d_x, d_y = -tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
 
         self.xtheta += d_x
@@ -125,7 +145,7 @@ class RubikCanvas(Canvas):
 
     def adj_line(self, p1, p2):
         """
-        This method considers two points. If any of the points is in the background,
+        This method considers two points. If either of the points is in the background,
         the line is sent to the background.
 
         :param matrix p1: a point
@@ -137,6 +157,17 @@ class RubikCanvas(Canvas):
             self.tag_raise(self.d_lines[-1])
 
     def projected_point(self, p, shift=True):
+        """
+        This method takes a point and applies the appropriate rotations.
+
+        :param matrix p: point to transform
+        :param bool shift: whether to perform shift for canvas
+
+        :return: projected point
+        :rtype: matrix
+        """
+        print(self.xtheta, self.ytheta)
+
         _p = rot_x(p, self.ytheta)
         _p = rot_y(_p, self.xtheta)
         _p *= SIDE_WIDTH
@@ -184,7 +215,7 @@ def rot(p, theta, rotation):
     return dot(ROTATIONS[rotation](theta), p)
 
 
-def rot_x(p: matrix, theta=90):
+def rot_x(p, theta=90):
     """
     This rotates a point in the x-axis by theta.
 
