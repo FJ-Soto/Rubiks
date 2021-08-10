@@ -12,8 +12,8 @@ class RubikCanvas(Canvas):
         super().__init__(master=master, width=width, height=width)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
-        self.xtheta = 0
-        self.ytheta = 0
+        self._xtheta = 0
+        self._ytheta = 0
 
         self.d_lines = []
         self.d_points = []
@@ -30,7 +30,7 @@ class RubikCanvas(Canvas):
 
     @xtheta.setter
     def xtheta(self, v):
-        self._xtheta = adjust_theta(self._xtheta + v)
+        self._xtheta = adjust_theta(v)
 
     @property
     def ytheta(self):
@@ -38,7 +38,7 @@ class RubikCanvas(Canvas):
 
     @ytheta.setter
     def ytheta(self, v):
-        self._ytheta = adjust_theta(self._ytheta + v)
+        self._ytheta = adjust_theta(v)
 
     def set_xy(self, e):
         """
@@ -54,9 +54,7 @@ class RubikCanvas(Canvas):
         This is the command that triggers when dragging on the canvas. This makes sure that
         the change in axis calls for transformation of the cube.
         """
-        # d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
-        d_x, d_y = sign(self.last_pos.x - e.x_root) * .0174533, sign(self.last_pos.y - e.y_root) * .0174533
-        print(self.xtheta, self.ytheta)
+        d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
 
         self.xtheta += d_x
         self.ytheta += d_y
@@ -255,5 +253,9 @@ def sign_p(v):
 
 
 def adjust_theta(v):
-    return v if -2 * pi <= v <= 2 * pi else 0
-
+    if -2 * pi <= v <= 2 * pi:
+        return v
+    elif 2 * pi < v:
+        return -2 * pi
+    else:
+        return 2 * pi
