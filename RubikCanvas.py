@@ -2,18 +2,20 @@ from tkinter import *
 
 from numpy import matrix, tan, dot, add, pi, sign
 
-from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
-from CONSTANTS import T_CON, M_CON, D_CON, CUBE, OCTANTS
+from CONSTANTS import OUT_CLR, CANVAS_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, DEBUG_CLRS, OCTANTS
+from Transformations import ROTATIONS
+from Forms import Cube, TriangularPrism
 from Coordinate import Coordinate
 
 
 class RubikCanvas(Canvas):
-    def __init__(self, master=None, width=RUBIKS_CANV_WIDTH):
+    def __init__(self, master=None, width=CANVAS_WIDTH):
         super().__init__(master=master, width=width, height=width)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
         self._xtheta = 0
         self._ytheta = 0
+        self.f = Cube(1, 1, 1)
 
         self.d_lines = []
         self.d_points = []
@@ -59,7 +61,9 @@ class RubikCanvas(Canvas):
         self.xtheta += d_x
         self.ytheta += d_y
 
-        print(self.xtheta, self.ytheta)
+        fp = self.projected_point(self.f.points[0], shift=False)
+        print(fp)
+        print(OCTANTS[(sign_p(fp[0]), sign_p(fp[1]), sign_p(fp[2]))])
 
         self.last_pos.x = e.x_root
         self.last_pos.y = e.y_root
@@ -72,24 +76,24 @@ class RubikCanvas(Canvas):
         This adjusts the individual coordinates to reduce CPU and RAM usage.
         """
         l_count = 0
-        for i, point in enumerate(CUBE):
+        for i, point in enumerate(self.f.points):
             _p = self.projected_point(point)
             self.coords(self.d_points[i], as_dot(_p))
 
             # use a dictionary to determine how the lines should be connected
             # follow T -> M -> D to ensure that l_count is in sync to the order in which the lines where added
-            if i in T_CON:
-                _p2 = self.projected_point(CUBE[T_CON[i]])
+            if i in self.f.T_CON:
+                _p2 = self.projected_point(self.f.points[self.f.T_CON[i]])
                 self.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
                 l_count += 1
 
-            if i in M_CON:
-                _p2 = self.projected_point(CUBE[M_CON[i]])
+            if i in self.f.M_CON:
+                _p2 = self.projected_point(self.f.points[self.f.M_CON[i]])
                 self.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
                 l_count += 1
 
-            if i in D_CON:
-                _p2 = self.projected_point(CUBE[D_CON[i]])
+            if i in self.f.D_CON:
+                _p2 = self.projected_point(self.f.points[self.f.D_CON[i]])
                 self.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
                 l_count += 1
 
@@ -103,7 +107,7 @@ class RubikCanvas(Canvas):
         """
         This method initializes the Rubik's cube drawing--necessary to avoid null-referencing.
         """
-        for i, point in enumerate(CUBE):
+        for i, point in enumerate(self.f.points):
             # determine projected point location
             _p = self.projected_point(point)
 
@@ -111,18 +115,18 @@ class RubikCanvas(Canvas):
             self.d_points.append(self.create_oval(as_dot(_p), fill=DEBUG_CLRS[i]))
 
             # connect lines + adjust initial depth
-            if i in T_CON:
-                _p2 = self.projected_point(CUBE[T_CON[i]])
+            if i in self.f.T_CON:
+                _p2 = self.projected_point(self.f.points[self.f.T_CON[i]])
                 self.d_lines.append(self.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
                 self.adj_line(_p, _p2)
 
-            if i in M_CON:
-                _p2 = self.projected_point(CUBE[M_CON[i]])
+            if i in self.f.M_CON:
+                _p2 = self.projected_point(self.f.points[self.f.M_CON[i]])
                 self.d_lines.append(self.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
                 self.adj_line(_p, _p2)
 
-            if i in D_CON:
-                _p2 = self.projected_point(CUBE[D_CON[i]])
+            if i in self.f.D_CON:
+                _p2 = self.projected_point(self.f.points[self.f.D_CON[i]])
                 self.d_lines.append(self.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
                 self.adj_line(_p, _p2)
 
