@@ -1,6 +1,6 @@
 from tkinter import *
 
-from numpy import matrix, tan, dot, add, pi
+from numpy import matrix, tan, dot, add, pi, sign
 
 from CONSTANTS import OUT_CLR, RUBIKS_CANV_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, ROTATIONS, DEBUG_CLRS
 from CONSTANTS import T_CON, M_CON, D_CON, CUBE, OCTANTS
@@ -17,10 +17,10 @@ class RubikCanvas(Canvas):
 
         self.d_lines = []
         self.d_points = []
-        self.last_pos = None
+        self.last_pos = Coordinate(0, 0)
 
         self.bind("<Button-1>", self.set_xy)
-        self.bind("<B1-Motion>", self.onDrag)
+        self.bind("<B1-Motion>", self.on_drag)
 
         self.initialize_cube()
 
@@ -30,12 +30,7 @@ class RubikCanvas(Canvas):
 
     @xtheta.setter
     def xtheta(self, v):
-        if -2 * pi <= v <= 2 * pi:
-            self._xtheta = v
-        elif -2 * pi > v:
-            self._xtheta = v + (2 * pi)
-        else:
-            self._xtheta = v - (2 * pi)
+        self._xtheta = adjust_theta(self._xtheta + v)
 
     @property
     def ytheta(self):
@@ -43,12 +38,7 @@ class RubikCanvas(Canvas):
 
     @ytheta.setter
     def ytheta(self, v):
-        if -2 * pi <= v <= 2 * pi:
-            self._ytheta = v
-        elif -2 * pi > v:
-            self._ytheta = v + (2 * pi)
-        else:
-            self._ytheta = v - (2 * pi)
+        self._ytheta = adjust_theta(self._ytheta + v)
 
     def set_xy(self, e):
         """
@@ -56,21 +46,22 @@ class RubikCanvas(Canvas):
 
         :param e: event
         """
-        if self.last_pos is None:
-            self.last_pos = Coordinate(x=e.x_root, y=e.y_root)
-        else:
-            self.last_pos.x = e.x_root
-            self.last_pos.y = e.y_root
+        self.last_pos.x = e.x_root
+        self.last_pos.y = e.y_root
 
-    def onDrag(self, e):
+    def on_drag(self, e):
         """
         This is the command that triggers when dragging on the canvas. This makes sure that
         the change in axis calls for transformation of the cube.
         """
-        d_x, d_y = -tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        # d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        d_x, d_y = sign(self.last_pos.x - e.x_root) * .0174533, sign(self.last_pos.y - e.y_root) * .0174533
+        print(self.xtheta, self.ytheta)
 
         self.xtheta += d_x
         self.ytheta += d_y
+
+        print(self.xtheta, self.ytheta)
 
         self.last_pos.x = e.x_root
         self.last_pos.y = e.y_root
@@ -166,10 +157,8 @@ class RubikCanvas(Canvas):
         :return: projected point
         :rtype: matrix
         """
-        print(self.xtheta, self.ytheta)
-
         _p = rot_x(p, self.ytheta)
-        _p = rot_y(_p, self.xtheta)
+        _p = rot_y(_p, -self.xtheta)
         _p *= SIDE_WIDTH
         return add(_p, matrix([[int(CENT_POINT[0])], [int(CENT_POINT[1])], [0]])) if shift else _p
 
@@ -265,4 +254,6 @@ def sign_p(v):
     return -1 if v < 0 else 1
 
 
+def adjust_theta(v):
+    return v if -2 * pi <= v <= 2 * pi else 0
 
