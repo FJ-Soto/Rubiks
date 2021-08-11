@@ -1,12 +1,12 @@
+from itertools import chain
 from tkinter import *
 
 from numpy import matrix, tan, dot, add, pi, array, reshape
 
+from CONSTANTS import CUBE, CUBE_FACES, CUBE_CLRS, T_CON, M_CON, D_CON
 from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, SIDE_WIDTH, CENT_POINT, DOT_RAD, DEBUG_CLRS, OCTANTS
 from Coordinate import Coordinate
-from CONSTANTS import CUBE, CUBE_FACES, CUBE_CLRS, T_CON, M_CON, D_CON
 from Transformations import ROTATIONS
-from itertools import chain
 
 
 class RubikCanvas(Canvas):
