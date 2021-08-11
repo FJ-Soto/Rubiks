@@ -1,25 +1,29 @@
 from tkinter import *
 
-from numpy import matrix, tan, dot, add, pi, sign
+from numpy import matrix, tan, dot, add, pi, array, reshape
 
-from CONSTANTS import OUT_CLR, CANVAS_WIDTH, SIDE_WIDTH, CENT_POINT, DOT_RAD, DEBUG_CLRS, OCTANTS
-from Transformations import ROTATIONS
-from Forms import Cube, TriangularPrism
+from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, SIDE_WIDTH, CENT_POINT, DOT_RAD, DEBUG_CLRS, OCTANTS
 from Coordinate import Coordinate
+from Forms import Cube
+from Transformations import ROTATIONS
+from itertools import chain
 
 
 class RubikCanvas(Canvas):
-    def __init__(self, master=None, width=CANVAS_WIDTH):
-        super().__init__(master=master, width=width, height=width)
+    def __init__(self, master=None, height=CANVAS_HGT, width=CANVAS_WDT):
+        super().__init__(master=master, width=width, height=height)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
         self._xtheta = 0
         self._ytheta = 0
-        self.f = Cube(1, 1, 1)
+        self._ztheta = 0
+        self.f = Cube(3, 1, 3)
 
         self.d_lines = []
         self.d_points = []
+        self.d_faces = []
         self.last_pos = Coordinate(0, 0)
+        self.center = array([CENT_POINT[0], 100, 100])
 
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.on_drag)
@@ -42,6 +46,14 @@ class RubikCanvas(Canvas):
     def ytheta(self, v):
         self._ytheta = adjust_theta(v)
 
+    @property
+    def ztheta(self):
+        return self._ztheta
+
+    @ztheta.setter
+    def ztheta(self, v):
+        self._ztheta = adjust_theta(v)
+
     def set_xy(self, e):
         """
         This initializes or refreshes the last click.
@@ -61,13 +73,13 @@ class RubikCanvas(Canvas):
         self.xtheta += d_x
         self.ytheta += d_y
 
-        fp = self.projected_point(self.f.points[0], shift=False)
-        print(fp)
-        print(OCTANTS[(sign_p(fp[0]), sign_p(fp[1]), sign_p(fp[2]))])
-
         self.last_pos.x = e.x_root
         self.last_pos.y = e.y_root
         self.draw_cube()
+
+    def get_octant(self, p):
+        fp = self.projected_point(p, shift=False)
+        return OCTANTS[sign_p(fp[0]), sign_p(fp[1]), sign_p(fp[2])]
 
     # TODO: Investigate a possible fix for the perspective skew.
     def draw_cube(self):
@@ -98,10 +110,24 @@ class RubikCanvas(Canvas):
                 l_count += 1
 
             # adjust for depth
-            if is_behind(_p[2]):
+            if self.is_behind(_p[2]):
                 self.tag_lower(self.d_points[i])
             else:
                 self.tag_raise(self.d_points[i])
+
+        # determine the peak point
+        peak = max(map(lambda x: self.projected_point(x), self.f.points), key=lambda x: x[2])
+
+        for i, face in enumerate(self.f.faces):
+            # compute projected face points
+            ps = list(map(lambda x: self.projected_point(x), list(self.f.points[z] for z in face)))
+
+            # determine if any of the projected points connect with the peak and show or hide
+            if any((peak == p).all() for p in ps):
+                self.coords(self.d_faces[i], tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps))))
+                self.itemconfigure(self.d_faces[i], state=NORMAL)
+            else:
+                self.itemconfigure(self.d_faces[i], state=HIDDEN)
 
     def initialize_cube(self):
         """
@@ -131,10 +157,23 @@ class RubikCanvas(Canvas):
                 self.adj_line(_p, _p2)
 
             # adjust for depth
-            if is_behind(_p[2]):
+            if self.is_behind(_p[2]):
                 self.tag_lower(self.d_points[i])
             else:
                 self.tag_raise(self.d_points[i])
+
+        peak = max(map(lambda x: self.projected_point(x), self.f.points), key=lambda x: x[2])
+
+        for i, face in enumerate(self.f.faces):
+            ps = list(map(lambda x: self.projected_point(x), list(self.f.points[z] for z in face)))
+            coords = tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps)))
+            pol = self.create_polygon(coords, fill=self.f.f_colors[i])
+            self.d_faces.append(pol)
+
+            if any((peak == p).all() for p in ps):
+                self.itemconfigure(self.d_faces[-1], state=NORMAL)
+            else:
+                self.itemconfigure(self.d_faces[-1], state=HIDDEN)
 
     def adj_line(self, p1, p2):
         """
@@ -144,7 +183,7 @@ class RubikCanvas(Canvas):
         :param matrix p1: a point
         :param matrix p2: another point
         """
-        if is_behind(p1[2], p2[2]):
+        if self.is_behind(p1[2], p2[2]):
             self.tag_lower(self.d_lines[-1])
         else:
             self.tag_raise(self.d_lines[-1])
@@ -161,20 +200,20 @@ class RubikCanvas(Canvas):
         """
         _p = rot_x(p, self.ytheta)
         _p = rot_y(_p, -self.xtheta)
+        _p = rot_z(_p, self.ztheta)
         _p *= SIDE_WIDTH
-        return add(_p, matrix([[int(CENT_POINT[0])], [int(CENT_POINT[1])], [0]])) if shift else _p
+        return add(_p, reshape(self.center, (3, 1))) if shift else _p
 
+    def is_behind(self, *args):
+        """
+        This returns true if any of the value sent over is negative.
 
-def is_behind(*args):
-    """
-    This returns true if any of the value sent over is negative.
+        :param args: list of numbers
 
-    :param args: list of numbers
-
-    :returns: boolean indicating whether any value is negative
-    :rtype: bool
-    """
-    return any(x < 0 for x in args)
+        :returns: boolean indicating whether any value is negative
+        :rtype: bool
+        """
+        return any(x < self.center[2] for x in args)
 
 
 def as_dot(p, rad=DOT_RAD):
@@ -197,7 +236,7 @@ def rot(p, theta, rotation):
     in the direction specified.
 
     :param matrix p: point to rotate
-    :param int theta: angle to rotate by
+    :param float theta: angle to rotate by
     :param str rotation: x, y, or z
 
     :return: a matrix representing the points new position
@@ -211,7 +250,7 @@ def rot_x(p, theta=90):
     This rotates a point in the x-axis by theta.
 
     :param matrix p: point to rotate
-    :param int theta: angle to rotate by
+    :param float theta: angle to rotate by
 
     :return: a matrix representing the points new position
     :rtype: matrix
@@ -224,7 +263,7 @@ def rot_y(p: matrix, theta=90):
     This rotates a point in the y-axis by theta.
 
     :param matrix p: point to rotate
-    :param int theta: angle to rotate by
+    :param float theta: angle to rotate by
 
     :return: a matrix representing the points new position
     :rtype: matrix
@@ -237,7 +276,7 @@ def rot_z(p, theta=90):
     This rotates a point in the z-axis by theta.
 
     :param matrix p: point to rotate
-    :param int theta: angle to rotate by
+    :param float theta: angle to rotate by
 
     :return: a matrix representing the points new position
     :rtype: matrix
