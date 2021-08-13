@@ -64,15 +64,19 @@ D_CON = {2: 3,
          7: 4,
          4: 2}
 
-CUBE_FACES = [(0, 1, 3, 2),
-              (1, 5, 7, 3),
-              (5, 6, 4, 7),
-              (6, 0, 2, 4),
-              (0, 1, 5, 6),
-              (2, 3, 7, 4)]
+CUBE_FACES = {'FRONT': (0, 1, 3, 2),
+              'RIGHT': (1, 5, 7, 3),
+              'BACK': (5, 6, 4, 7),
+              'LEFT': (6, 0, 2, 4),
+              'TOP': (0, 1, 5, 6),
+              'BOTTOM': (2, 3, 7, 4)}
 
-CUBE_CLRS = ['WHITE', 'RED', 'YELLOW',
-             'ORANGE', 'BLUE', 'GREEN']
+CUBE_CLRS = {'FRONT': 'WHITE',
+             'RIGHT': 'RED',
+             'BACK': 'YELLOW',
+             'LEFT': 'ORANGE',
+             'TOP': 'BLUE',
+             'BOTTOM': 'GREEN'}
 
 OCTANTS = {(1, -1, 1): 1,
            (-1, -1, 1): 2,

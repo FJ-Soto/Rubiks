@@ -10,7 +10,7 @@ from numpy import tan, reshape, add, matrix
 
 
 class RubikLayer:
-    def __init__(self, master: Canvas, y_offset: float = 0):
+    def __init__(self, master: Canvas, y_offset: float = 0, exclude_face: list = None):
         self.master = master
         self._xtheta = 0
         self._ytheta = 0
@@ -27,6 +27,10 @@ class RubikLayer:
         self.last_pos = Coordinate(0, 0)
         self.center = CENT_POINT
 
+        if exclude_face is not None:
+            self._faces = list(filter(lambda x: x not in exclude_face, CUBE_FACES))
+        else:
+            self._faces = CUBE_FACES
         # self.d_c = self.master.create_oval(as_dot(self.center), fill='CYAN')
         self.initialize_cube()
 
@@ -138,9 +142,9 @@ class RubikLayer:
             # determine the peak point
             peak = max(map(lambda x: self.projected_point(x), self.CUBE), key=lambda x: x[2])
 
-            for i, face in enumerate(CUBE_FACES):
+            for i, face in enumerate(self._faces):
                 # compute projected face points
-                ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in face)))
+                ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in CUBE_FACES[face])))
 
                 # determine if any of the projected points connect with the peak and show or hide
                 if any((peak == p).all() for p in ps):
@@ -167,17 +171,20 @@ class RubikLayer:
             # connect lines + adjust initial depth
             if i in T_CON:
                 _p2 = self.projected_point(self.CUBE[T_CON[i]])
-                self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+                self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]),
+                                                            fill='RED'))
                 self.adj_line(_p, _p2)
 
             if i in M_CON:
                 _p2 = self.projected_point(self.CUBE[M_CON[i]])
-                self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+                self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]),
+                                                            fill='RED'))
                 self.adj_line(_p, _p2)
 
             if i in D_CON:
                 _p2 = self.projected_point(self.CUBE[D_CON[i]])
-                self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]), fill='RED'))
+                self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]),
+                                                            fill='RED'))
                 self.adj_line(_p, _p2)
 
             # adjust for depth
@@ -188,10 +195,10 @@ class RubikLayer:
 
         peak = max(map(lambda x: self.projected_point(x), self.CUBE), key=lambda x: x[2])
 
-        for i, face in enumerate(CUBE_FACES):
-            ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in face)))
+        for face in self._faces:
+            ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in CUBE_FACES[face])))
             coords = tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps)))
-            pol = self.master.create_polygon(coords, fill=CUBE_CLRS[i])
+            pol = self.master.create_polygon(coords, fill=CUBE_CLRS[face])
             self.d_faces.append(pol)
 
             if any((peak == p).all() for p in ps):

@@ -14,9 +14,9 @@ class RubikCanvas(Canvas):
         super().__init__(master=master, width=width, height=height)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
-        self.layers = [RubikLayer(self, 1),
-                       RubikLayer(self),
-                       RubikLayer(self, -1)]
+        self.layers = [RubikLayer(self, -1, exclude_face=['BOTTOM']),
+                       RubikLayer(self, exclude_face=['TOP', 'BOTTOM']),
+                       RubikLayer(self, 1, exclude_face=['TOP'])]
 
         # self.layers = [RubikLayer(self, 0)]
 
