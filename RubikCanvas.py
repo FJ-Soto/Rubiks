@@ -1,6 +1,6 @@
 from tkinter import *
 
-from numpy import tan, array
+from numpy import tan
 
 from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, CENT_POINT, SIDE_WIDTH
 from Coordinate import Coordinate
@@ -31,7 +31,6 @@ class RubikCanvas(Canvas):
         self.center = CENT_POINT
 
         self.bind("<Button-1>", self.set_xy)
-
         self.bind("<B1-Motion>", self.on_drag)
 
         self.show_clrs = True
@@ -78,6 +77,8 @@ class RubikCanvas(Canvas):
     @xtheta.setter
     def xtheta(self, v):
         self._xtheta = adjust_theta(v)
+        for layer in self.layers:
+            layer.xtheta = self._xtheta
 
     @property
     def ytheta(self):
@@ -86,6 +87,8 @@ class RubikCanvas(Canvas):
     @ytheta.setter
     def ytheta(self, v):
         self._ytheta = adjust_theta(v)
+        for layer in self.layers:
+            layer.ytheta = self._ytheta
 
     @property
     def ztheta(self):
@@ -94,6 +97,8 @@ class RubikCanvas(Canvas):
     @ztheta.setter
     def ztheta(self, v):
         self._ztheta = adjust_theta(v)
+        for layer in self.layers:
+            layer.ztheta = self._ztheta
 
     def set_xy(self, e):
         """
@@ -124,4 +129,5 @@ class RubikCanvas(Canvas):
         for layer in self.layers:
             layer.set_thetas(self.xtheta, self.ytheta)
 
+        self.event_generate('<<drag>>')
         self.refresh()

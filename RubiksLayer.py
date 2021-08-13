@@ -40,7 +40,7 @@ class RubikLayer:
 
     @xtheta.setter
     def xtheta(self, v):
-        self._xtheta = adjust_theta(v)
+        self._xtheta = v
 
     @property
     def ytheta(self):
@@ -48,7 +48,7 @@ class RubikLayer:
 
     @ytheta.setter
     def ytheta(self, v):
-        self._ytheta = adjust_theta(v)
+        self._ytheta = v
 
     @property
     def ztheta(self):
@@ -56,7 +56,7 @@ class RubikLayer:
 
     @ztheta.setter
     def ztheta(self, v):
-        self._ztheta = adjust_theta(v)
+        self._ztheta = v
 
     def set_xy(self, e):
         """

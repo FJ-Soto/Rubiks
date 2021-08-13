@@ -9,7 +9,7 @@ class ControlPanel(Frame):
         self.config(padx=10, pady=10)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
 
-        Label(self, text='Display Options').grid(row=0, column=0, columnspan=1, sticky=W)
+        Label(self, text='Display Options').grid(row=0, column=0, sticky=W)
 
         self.show_clrs = BooleanVar(value=True)
         self.ck_clrs = Checkbutton(self, text="Show colors", variable=self.show_clrs, selectcolor='BLACK',
@@ -25,3 +25,24 @@ class ControlPanel(Frame):
         self.ck_dots = Checkbutton(self, text="Show points", variable=self.show_points, selectcolor='BLACK',
                                    command=lambda *args: self.event_generate("<<Show Points Change>>")
                                    ).grid(row=1, column=2, padx=10, pady=10, sticky=W)
+
+        Label(self, text='Rotation options').grid(row=2, column=0, columnspan=1, sticky=W)
+        Label(self, text='X-Angle: ').grid(row=3, column=0, sticky=W, padx=10, pady=10)
+        Label(self, text='Y-Angle: ').grid(row=4, column=0, sticky=W, padx=10, pady=10)
+        Label(self, text='Z-Angle: ').grid(row=5, column=0, sticky=W, padx=10, pady=10)
+
+        self.xchange = DoubleVar(value=0)
+        self.sc_xchange = Scale(self, from_=-360, to_=360, orient=HORIZONTAL, variable=self.xchange,
+                                command=lambda *args: self.event_generate('<<x-change>>'),
+                                tickinterval=45)
+        self.sc_xchange.grid(row=3, column=1, sticky=EW, columnspan=2)
+
+        self.ychange = DoubleVar(value=0)
+        self.sc_ychange = Scale(self, from_=-360, to_=360, orient=HORIZONTAL, variable=self.ychange,
+                                command=lambda *args: self.event_generate('<<y-change>>'))
+        self.sc_ychange.grid(row=4, column=1, sticky=EW, columnspan=2)
+
+        self.zchange = DoubleVar(value=0)
+        self.sc_zchange = Scale(self, from_=-360, to_=360, orient=HORIZONTAL, variable=self.zchange,
+                                command=lambda *args: self.event_generate('<<z-change>>'))
+        self.sc_zchange.grid(row=5, column=1, sticky=EW, columnspan=2)
