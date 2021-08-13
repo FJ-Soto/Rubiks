@@ -18,7 +18,6 @@ CENTER = CANVAS_WDT / 2
 
 # Computed Rubik
 CENT_POINT = array([CANVAS_WDT / 2, CANVAS_WDT / 2, 0])
-L1 = array([])
 
 # Control Panel
 CTRL_PNL_WDT = APP_WDT - CANVAS_WDT
