@@ -39,8 +39,14 @@ if __name__ == '__main__':
         rubik_canvas.refresh()
 
     def rubiksDrag(e):
-        control_panel.ychange.set(-rubik_canvas.xtheta * 180 / pi)
-        control_panel.xchange.set(rubik_canvas.ytheta * 180 / pi)
+        control_panel.ychange.set(rubik_canvas.ytheta * 180 / pi)
+        control_panel.xchange.set(-rubik_canvas.xtheta * 180 / pi)
+        control_panel.zchange.set(rubik_canvas.ztheta * 180 / pi)
+
+    def refresh(e):
+        rubik_canvas.reset()
+        control_panel.ychange.set(rubik_canvas.ytheta * 180 / pi)
+        control_panel.xchange.set(-rubik_canvas.xtheta * 180 / pi)
         control_panel.zchange.set(rubik_canvas.ztheta * 180 / pi)
 
     rubik_canvas.refresh()
@@ -53,6 +59,7 @@ if __name__ == '__main__':
     control_panel.bind("<<x-change>>", xchange)
     control_panel.bind("<<y-change>>", ychange)
     control_panel.bind("<<z-change>>", zchange)
+    control_panel.bind("<<reset canvas>>", refresh)
 
     root.title("Rubik's Cube Solver")
     root.minsize(APP_WDT, APP_HGT)

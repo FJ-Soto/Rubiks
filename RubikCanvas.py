@@ -80,6 +80,12 @@ class RubikCanvas(Canvas):
         for layer in self.layers:
             layer.xtheta = self._xtheta
 
+    def reset(self):
+        self.xtheta = 0
+        self.ytheta = 0
+        self.ztheta = 0
+        self.refresh()
+
     @property
     def ytheta(self):
         return self._ytheta
