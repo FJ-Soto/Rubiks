@@ -1,6 +1,6 @@
 from tkinter import *
 
-from CONSTANTS import APP_BG, APP_WDT, APP_HGT, CUBE_CLRS
+from CONSTANTS import APP_BG, APP_WDT, APP_HGT, CUBE_CLRS, RESIZE_WDT, RESIZE_HGT, MIN_WDT, MIN_HGT
 from RubikCanvas import RubikCanvas
 from ControlPanel import ControlPanel
 from UtilityFunctions import to_rad, to_deg
@@ -10,8 +10,11 @@ from numpy import pi
 
 if __name__ == '__main__':
     root = Tk()
+    root.title("Rubik's Cube Solver")
     root.config(padx=20, pady=20)
-    root.resizable(False, False)
+    root.tk_setPalette(background=APP_BG)
+    root.minsize(MIN_WDT, MIN_HGT)
+    root.resizable(RESIZE_WDT, RESIZE_HGT)
 
     control_panel = ControlPanel(master=root)
     control_panel.grid(row=0, column=0, padx=20, pady=20, sticky=NE + W)
@@ -131,9 +134,5 @@ if __name__ == '__main__':
     control_panel.bind("<<reset canvas>>", refresh)
     control_panel.bind("<<color scheme change>>", adjColorScheme)
     control_panel.bind("<<reset color scheme>>", reset_color_scheme)
-
-    root.title("Rubik's Cube Solver")
-    root.minsize(APP_WDT, APP_HGT)
-    root.tk_setPalette(background=APP_BG)
 
     root.mainloop()

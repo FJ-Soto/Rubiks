@@ -3,7 +3,11 @@ from numpy import array, pi
 # Main window
 APP_BG = 'BLACK'
 APP_WDT = 600
-APP_HGT = 800
+APP_HGT = 500
+MIN_WDT = 1240
+MIN_HGT = 680
+RESIZE_WDT = True
+RESIZE_HGT = True
 
 # Label Font
 LBL_FONT = 'TkDefaultFont 10 bold'
