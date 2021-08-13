@@ -3,10 +3,10 @@ from itertools import chain
 
 from Coordinate import Coordinate
 from CONSTANTS import SIDE_WIDTH, T_CON, M_CON, D_CON
-from CONSTANTS import CUBE, CUBE_FACES, CUBE_CLRS, DEBUG_CLRS, OCTANTS, CENT_POINT
+from CONSTANTS import CUBE_FACES, CUBE_CLRS, DEBUG_CLRS, OCTANTS, CENT_POINT
 from CONSTANTS import X_THETA, Y_THETA, Z_THETA
 
-from UtilityFunctions import sign_p, as_dot, rot_x, rot_y, rot_z
+from UtilityFunctions import sign_p, as_dot, rot_x, rot_y, rot_z, gen_cube
 from numpy import tan, reshape, add, matrix
 
 
@@ -16,7 +16,7 @@ class RubikLayer:
         self.xtheta = Y_THETA
         self.ytheta = X_THETA
         self.ztheta = Z_THETA
-        self.CUBE = CUBE(3, 1, 3, y_offset=y_offset)
+        self.CUBE = gen_cube(3, 1, 3, y_offset=y_offset)
 
         self.show_clrs = True
         self.show_outline = False

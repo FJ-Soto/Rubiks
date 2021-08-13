@@ -25,21 +25,6 @@ CTRL_PNL_WDT = APP_WDT - CANVAS_WDT
 CTRL_PNL_HGT = 200
 
 
-# Cube
-def CUBE(width, height, depth, x_offset: float = 0, y_offset: float = 0, z_offset: float = 0):
-    width /= 2
-    height /= 2
-    depth /= 2
-    return array([matrix([[-width + x_offset], [-height + y_offset], [depth + z_offset]]),
-                  matrix([[width + x_offset], [-height + y_offset], [depth + z_offset]]),
-                  matrix([[-width + x_offset], [height + y_offset], [depth + z_offset]]),
-                  matrix([[width + x_offset], [height + y_offset], [depth + z_offset]]),
-                  matrix([[-width + x_offset], [height + y_offset], [-depth + z_offset]]),
-                  matrix([[width + x_offset], [-height + y_offset], [-depth + z_offset]]),
-                  matrix([[-width + x_offset], [-height + y_offset], [-depth + z_offset]]),
-                  matrix([[width + x_offset], [height + y_offset], [-depth + z_offset]])])
-
-
 DEBUG_CLRS = {0: 'RED',
               1: 'ORANGE',
               2: 'YELLOW',

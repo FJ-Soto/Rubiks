@@ -1,7 +1,7 @@
 from CONSTANTS import DOT_RAD
 from Transformations import ROTATIONS
 
-from numpy import dot, matrix, pi
+from numpy import dot, matrix, pi, array
 
 
 def as_dot(p, rad=DOT_RAD):
@@ -98,3 +98,18 @@ def to_rad(deg):
 
 def to_deg(rad):
     return rad * 180 / pi
+
+
+# Cube
+def gen_cube(width, height, depth, x_offset: float = 0, y_offset: float = 0, z_offset: float = 0):
+    width /= 2
+    height /= 2
+    depth /= 2
+    return array([matrix([[-width + x_offset], [-height + y_offset], [depth + z_offset]]),
+                  matrix([[width + x_offset], [-height + y_offset], [depth + z_offset]]),
+                  matrix([[-width + x_offset], [height + y_offset], [depth + z_offset]]),
+                  matrix([[width + x_offset], [height + y_offset], [depth + z_offset]]),
+                  matrix([[-width + x_offset], [height + y_offset], [-depth + z_offset]]),
+                  matrix([[width + x_offset], [-height + y_offset], [-depth + z_offset]]),
+                  matrix([[-width + x_offset], [-height + y_offset], [-depth + z_offset]]),
+                  matrix([[width + x_offset], [height + y_offset], [-depth + z_offset]])])

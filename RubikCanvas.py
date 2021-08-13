@@ -3,7 +3,7 @@ from tkinter import *
 from numpy import tan
 
 from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, CENT_POINT, SIDE_WIDTH
-from CONSTANTS import X_THETA, Y_THETA, Z_THETA, SCR_SENS
+from CONSTANTS import X_THETA, Y_THETA, Z_THETA
 from Coordinate import Coordinate
 from UtilityFunctions import adjust_theta
 
