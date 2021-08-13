@@ -1,6 +1,6 @@
 from tkinter import *
 
-from CONSTANTS import APP_BG, APP_WDT, APP_HGT
+from CONSTANTS import APP_BG, APP_WDT, APP_HGT, CUBE_CLRS
 from RubikCanvas import RubikCanvas
 from ControlPanel import ControlPanel
 from UtilityFunctions import to_rad, to_deg
@@ -18,6 +18,8 @@ if __name__ == '__main__':
 
     rubik_canvas = RubikCanvas(master=root)
     rubik_canvas.grid(row=0, column=1, padx=20, pady=20, sticky=NSEW)
+
+    control_panel.set_colors(CUBE_CLRS)
 
     def onChangeColorChange(e):
         """
@@ -107,6 +109,15 @@ if __name__ == '__main__':
         control_panel.xchange.set(to_deg(rubik_canvas.xtheta))
         control_panel.zchange.set(to_deg(rubik_canvas.ztheta))
 
+    def adjColorScheme(e):
+        rubik_canvas.color_scheme = control_panel.get_color_scheme()
+        rubik_canvas.refresh()
+
+    def reset_color_scheme(e):
+        control_panel.set_colors(CUBE_CLRS)
+        adjColorScheme(None)
+
+
     rubik_canvas.refresh()
 
     rubik_canvas.bind("<<drag>>", rubiksDrag)
@@ -118,6 +129,8 @@ if __name__ == '__main__':
     control_panel.bind("<<y-change>>", ychange)
     control_panel.bind("<<z-change>>", zchange)
     control_panel.bind("<<reset canvas>>", refresh)
+    control_panel.bind("<<color scheme change>>", adjColorScheme)
+    control_panel.bind("<<reset color scheme>>", reset_color_scheme)
 
     root.title("Rubik's Cube Solver")
     root.minsize(APP_WDT, APP_HGT)

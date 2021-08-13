@@ -3,7 +3,7 @@ from itertools import chain
 
 from Coordinate import Coordinate
 from CONSTANTS import SIDE_WIDTH, T_CON, M_CON, D_CON
-from CONSTANTS import CUBE_FACES, CUBE_CLRS, DEBUG_CLRS, OCTANTS, CENT_POINT
+from CONSTANTS import CUBE_FACES, DEBUG_CLRS, OCTANTS, CENT_POINT
 from CONSTANTS import X_THETA, Y_THETA, Z_THETA
 
 from UtilityFunctions import sign_p, as_dot, rot_x, rot_y, rot_z, gen_cube
@@ -11,12 +11,20 @@ from numpy import tan, reshape, add, matrix
 
 
 class RubikLayer:
-    def __init__(self, master: Canvas, y_offset: float = 0, exclude_face: list = None):
+    def __init__(self, master, y_offset=0, x_offset=0, exclude_face=None):
+        """
+        This initializes an instance of a drawable Rubik layer.
+
+        :param master: the canvas for which to draw cube on.
+        :param float y_offset: shift center point by y-offset
+        :param float x_offset: shift center point by x-offset
+        :param set exclude_face: list of faces not to color
+        """
         self.master = master
         self.xtheta = Y_THETA
         self.ytheta = X_THETA
         self.ztheta = Z_THETA
-        self.CUBE = gen_cube(3, 1, 3, y_offset=y_offset)
+        self.CUBE = gen_cube(3, 1, 3, y_offset=y_offset, x_offset=x_offset)
 
         self.show_clrs = True
         self.show_outline = False
@@ -28,10 +36,8 @@ class RubikLayer:
         self.last_pos = Coordinate(0, 0)
         self.center = CENT_POINT
 
-        if exclude_face is not None:
-            self._faces = list(filter(lambda x: x not in exclude_face, CUBE_FACES))
-        else:
-            self._faces = CUBE_FACES
+        self._faces = set(CUBE_FACES.keys()) - exclude_face
+
         # self.d_c = self.master.create_oval(as_dot(self.center), fill='CYAN')
         self.initialize_cube()
 
@@ -71,6 +77,10 @@ class RubikLayer:
         """
         This adjust the cube model--a 'redraw' without the redrawing.
         This adjusts the individual coordinates to reduce CPU and RAM usage.
+
+        Note: in effort to reduce time complexity, multiple parts of the cube
+        are draw/adjusted within a single for-loop. Ideally, this could be
+        written in segments.
         """
         l_count = 0
         for i, point in enumerate(self.CUBE):
@@ -127,7 +137,7 @@ class RubikLayer:
                 if any((peak == p).all() for p in ps):
                     self.master.coords(self.d_faces[i],
                                        tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps))))
-                    self.master.itemconfigure(self.d_faces[i], state=NORMAL)
+                    self.master.itemconfigure(self.d_faces[i], state=NORMAL, fill=self.master.color_scheme[face])
                 else:
                     self.master.itemconfigure(self.d_faces[i], state=HIDDEN)
         else:
@@ -175,7 +185,7 @@ class RubikLayer:
         for face in self._faces:
             ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in CUBE_FACES[face])))
             coords = tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps)))
-            pol = self.master.create_polygon(coords, fill=CUBE_CLRS[face])
+            pol = self.master.create_polygon(coords, fill=self.master.color_scheme[face])
             self.d_faces.append(pol)
 
             if any((peak == p).all() for p in ps):

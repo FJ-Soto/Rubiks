@@ -2,7 +2,7 @@ from tkinter import *
 
 from numpy import tan
 
-from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, CENT_POINT, SIDE_WIDTH
+from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, CENT_POINT, SIDE_WIDTH, CUBE_CLRS
 from CONSTANTS import X_THETA, Y_THETA, Z_THETA
 from Coordinate import Coordinate
 from UtilityFunctions import adjust_theta
@@ -14,10 +14,11 @@ class RubikCanvas(Canvas):
     def __init__(self, master=None, height=CANVAS_HGT, width=CANVAS_WDT):
         super().__init__(master=master, width=width, height=height)
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
+        self.color_scheme = CUBE_CLRS.copy()
 
-        self.layers = [RubikLayer(self, -1, exclude_face=['BOTTOM']),
-                       RubikLayer(self, exclude_face=['TOP', 'BOTTOM']),
-                       RubikLayer(self, 1, exclude_face=['TOP'])]
+        self.layers = [RubikLayer(self, -1, exclude_face={'BOTTOM'}),
+                       RubikLayer(self, exclude_face={'TOP', 'BOTTOM'}),
+                       RubikLayer(self, 1, exclude_face={'TOP'})]
 
         self.xtheta = X_THETA
         self.ytheta = Y_THETA

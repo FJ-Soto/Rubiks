@@ -1,15 +1,17 @@
-from numpy import array, matrix, pi
+from numpy import array, pi
 
 # Main window
 APP_BG = 'BLACK'
 APP_WDT = 600
 APP_HGT = 800
 
+# Label Font
+LBL_FONT = 'TkDefaultFont 10 bold'
+
 # Rubik
 SIDE_WIDTH = (APP_WDT - 100) / 5
 OUT_CLR = 'WHITE'
 DOT_RAD = 5
-SCR_SENS = 0.017
 
 # Canvas
 CANVAS_WDT = (APP_WDT - 5)
