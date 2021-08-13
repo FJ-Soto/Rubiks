@@ -3,6 +3,7 @@ from tkinter import *
 from numpy import tan
 
 from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, CENT_POINT, SIDE_WIDTH
+from CONSTANTS import X_THETA, Y_THETA, Z_THETA, SCR_SENS
 from Coordinate import Coordinate
 from UtilityFunctions import adjust_theta
 
@@ -18,11 +19,9 @@ class RubikCanvas(Canvas):
                        RubikLayer(self, exclude_face=['TOP', 'BOTTOM']),
                        RubikLayer(self, 1, exclude_face=['TOP'])]
 
-        # self.layers = [RubikLayer(self, 0)]
-
-        self._xtheta = 0
-        self._ytheta = 0
-        self._ztheta = 0
+        self.xtheta = X_THETA
+        self.ytheta = Y_THETA
+        self.ztheta = Z_THETA
 
         self.d_lines = []
         self.d_points = []
@@ -81,9 +80,9 @@ class RubikCanvas(Canvas):
             layer.xtheta = self._xtheta
 
     def reset(self):
-        self.xtheta = 0
-        self.ytheta = 0
-        self.ztheta = 0
+        self.xtheta = X_THETA
+        self.ytheta = Y_THETA
+        self.ztheta = Z_THETA
         self.refresh()
 
     @property
@@ -124,9 +123,10 @@ class RubikCanvas(Canvas):
         This is the command that triggers when dragging on the canvas. This makes sure that
         the change in axis calls for transformation of the cube.
         """
-        d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        d_x = tan((self.last_pos.x - e.x_root) / (2 * SIDE_WIDTH))
+        d_y = tan((self.last_pos.y - e.y_root) / (2 * SIDE_WIDTH))
 
-        self.xtheta += d_x
+        self.xtheta += -d_x
         self.ytheta += d_y
 
         self.last_pos.x = e.x_root

@@ -90,3 +90,11 @@ def adjust_theta(v):
         return -2 * pi
     else:
         return 2 * pi
+
+
+def to_rad(deg):
+    return deg * pi / 180
+
+
+def to_deg(rad):
+    return rad * 180 / pi

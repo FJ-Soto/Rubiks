@@ -4,17 +4,18 @@ from itertools import chain
 from Coordinate import Coordinate
 from CONSTANTS import SIDE_WIDTH, T_CON, M_CON, D_CON
 from CONSTANTS import CUBE, CUBE_FACES, CUBE_CLRS, DEBUG_CLRS, OCTANTS, CENT_POINT
+from CONSTANTS import X_THETA, Y_THETA, Z_THETA
 
-from UtilityFunctions import adjust_theta, sign_p, as_dot, rot_x, rot_y, rot_z
+from UtilityFunctions import sign_p, as_dot, rot_x, rot_y, rot_z
 from numpy import tan, reshape, add, matrix
 
 
 class RubikLayer:
     def __init__(self, master: Canvas, y_offset: float = 0, exclude_face: list = None):
         self.master = master
-        self._xtheta = 0
-        self._ytheta = 0
-        self._ztheta = 0
+        self.xtheta = Y_THETA
+        self.ytheta = X_THETA
+        self.ztheta = Z_THETA
         self.CUBE = CUBE(3, 1, 3, y_offset=y_offset)
 
         self.show_clrs = True
@@ -34,30 +35,6 @@ class RubikLayer:
         # self.d_c = self.master.create_oval(as_dot(self.center), fill='CYAN')
         self.initialize_cube()
 
-    @property
-    def xtheta(self):
-        return self._xtheta
-
-    @xtheta.setter
-    def xtheta(self, v):
-        self._xtheta = v
-
-    @property
-    def ytheta(self):
-        return self._ytheta
-
-    @ytheta.setter
-    def ytheta(self, v):
-        self._ytheta = v
-
-    @property
-    def ztheta(self):
-        return self._ztheta
-
-    @ztheta.setter
-    def ztheta(self, v):
-        self._ztheta = v
-
     def set_xy(self, e):
         """
         This initializes or refreshes the last click.
@@ -76,7 +53,7 @@ class RubikLayer:
         This is the command that triggers when dragging on the canvas. This makes sure that
         the change in axis calls for transformation of the cube.
         """
-        d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
+        d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), -tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
 
         self.xtheta += d_x
         self.ytheta += d_y
@@ -237,7 +214,7 @@ class RubikLayer:
 
     def project(self, p):
         _p = rot_x(p, self.ytheta)
-        _p = rot_y(_p, -self.xtheta)
+        _p = rot_y(_p, self.xtheta)
         _p = rot_z(_p, self.ztheta)
         return _p
 

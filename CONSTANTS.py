@@ -1,4 +1,4 @@
-from numpy import array, matrix
+from numpy import array, matrix, pi
 
 # Main window
 APP_BG = 'BLACK'
@@ -9,6 +9,7 @@ APP_HGT = 800
 SIDE_WIDTH = (APP_WDT - 100) / 5
 OUT_CLR = 'WHITE'
 DOT_RAD = 5
+SCR_SENS = 0.017
 
 # Canvas
 CANVAS_WDT = (APP_WDT - 5)
@@ -89,3 +90,10 @@ OCTANTS = {(1, -1, 1): 1,
 
 # Control Panel
 TICK_INT = 90
+
+
+# the x and y thetas are opposite signed since (0, 0)
+# is the top left side of the canvas
+X_THETA = 6 * pi / 180
+Y_THETA = -6 * pi / 180
+Z_THETA = 0 * pi / 180
