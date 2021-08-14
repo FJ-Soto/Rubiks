@@ -100,6 +100,13 @@ def to_deg(rad):
     return rad * 180 / pi
 
 
+def project(p, x_rad, y_rad, z_rad):
+    _p = rot_x(p, y_rad)
+    _p = rot_y(_p, x_rad)
+    _p = rot_z(_p, z_rad)
+    return _p
+
+
 # Cube
 def gen_cube(width, height, depth, x_offset: float = 0, y_offset: float = 0, z_offset: float = 0):
     width /= 2

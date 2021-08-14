@@ -84,6 +84,6 @@ TICK_INT = 90
 
 # the x and y thetas are opposite signed since (0, 0)
 # is the top left side of the canvas
-X_THETA = 6 * pi / 180
-Y_THETA = -6 * pi / 180
+X_THETA = 2 * pi / 180
+Y_THETA = -2 * pi / 180
 Z_THETA = 0 * pi / 180

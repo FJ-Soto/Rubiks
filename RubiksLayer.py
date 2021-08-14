@@ -3,15 +3,14 @@ from itertools import chain
 
 from Coordinate import Coordinate
 from CONSTANTS import SIDE_WIDTH, T_CON, M_CON, D_CON
-from CONSTANTS import CUBE_FACES, DEBUG_CLRS, OCTANTS, CENT_POINT
-from CONSTANTS import X_THETA, Y_THETA, Z_THETA
+from CONSTANTS import CUBE_FACES, DEBUG_CLRS, CENT_POINT
 
-from UtilityFunctions import sign_p, as_dot, rot_x, rot_y, rot_z, gen_cube
-from numpy import tan, reshape, add, matrix
+from UtilityFunctions import as_dot, gen_cube, project
+from numpy import reshape, add, matrix
 
 
 class RubikLayer:
-    def __init__(self, master, y_offset=0, x_offset=0, exclude_face=None):
+    def __init__(self, master, x_rad, y_rad, z_rad, y_offset=0, x_offset=0, exclude_face=None):
         """
         This initializes an instance of a drawable Rubik layer.
 
@@ -21,10 +20,12 @@ class RubikLayer:
         :param set exclude_face: list of faces not to color
         """
         self.master = master
-        self.xtheta = Y_THETA
-        self.ytheta = X_THETA
-        self.ztheta = Z_THETA
+        # this will be the cube being transformed
         self.CUBE = gen_cube(3, 1, 3, y_offset=y_offset, x_offset=x_offset)
+        # this will be the original cube
+        self._CUBE = gen_cube(3, 1, 3, y_offset=y_offset, x_offset=x_offset)
+        self.x_offset = x_offset
+        self.y_offset = y_offset
 
         self.show_clrs = True
         self.show_outline = False
@@ -38,42 +39,10 @@ class RubikLayer:
 
         self._faces = set(CUBE_FACES.keys()) - exclude_face
 
-        # self.d_c = self.master.create_oval(as_dot(self.center), fill='CYAN')
-        self.initialize_cube()
-
-    def set_xy(self, e):
-        """
-        This initializes or refreshes the last click.
-
-        :param e: event
-        """
-        self.last_pos.x = e.x_root
-        self.last_pos.y = e.y_root
-
-    def set_thetas(self, x, y):
-        self.xtheta = x
-        self.ytheta = y
-
-    def on_drag(self, e):
-        """
-        This is the command that triggers when dragging on the canvas. This makes sure that
-        the change in axis calls for transformation of the cube.
-        """
-        d_x, d_y = tan((self.last_pos.x - e.x_root) / SIDE_WIDTH), -tan((self.last_pos.y - e.y_root) / SIDE_WIDTH)
-
-        self.xtheta += d_x
-        self.ytheta += d_y
-
-        self.last_pos.x = e.x_root
-        self.last_pos.y = e.y_root
-        self.draw_cube()
-
-    def get_octant(self, p):
-        fp = self.projected_point(p, shift=False)
-        return OCTANTS[sign_p(fp[0]), sign_p(fp[1]), sign_p(fp[2])]
+        self.initialize_cube(x_rad, y_rad, z_rad)
 
     # TODO: Investigate a possible fix for the perspective skew.
-    def draw_cube(self):
+    def draw_cube(self, x_rad, y_rad, z_rad):
         """
         This adjust the cube model--a 'redraw' without the redrawing.
         This adjusts the individual coordinates to reduce CPU and RAM usage.
@@ -84,7 +53,8 @@ class RubikLayer:
         """
         l_count = 0
         for i, point in enumerate(self.CUBE):
-            _p = self.projected_point(point)
+            _p = self.projected_point(point, x_rad, y_rad, z_rad)
+
             if self.show_points:
                 self.master.itemconfigure(self.d_points[i], state=NORMAL)
                 self.master.coords(self.d_points[i], as_dot(_p))
@@ -125,13 +95,15 @@ class RubikLayer:
                     self.master.itemconfigure(self.d_lines[l_count], state=HIDDEN)
                 l_count += 1
 
+        # self.CUBE = list(map(lambda x: project(x, x_rad, y_rad, z_rad), self.CUBE))
+
         if self.show_clrs:
             # determine the peak point
-            peak = max(map(lambda x: self.projected_point(x), self.CUBE), key=lambda x: x[2])
+            peak = max(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE), key=lambda x: x[2])
 
             for i, face in enumerate(self._faces):
                 # compute projected face points
-                ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in CUBE_FACES[face])))
+                ps = list(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), list(self.CUBE[z] for z in CUBE_FACES[face])))
 
                 # determine if any of the projected points connect with the peak and show or hide
                 if any((peak == p).all() for p in ps):
@@ -144,32 +116,33 @@ class RubikLayer:
             for face in self.d_faces:
                 self.master.itemconfigure(face, state=HIDDEN)
 
-    def initialize_cube(self):
+    def initialize_cube(self, x_rad, y_rad, z_rad):
         """
         This method initializes the Rubik's cube drawing--necessary to avoid null-referencing.
         """
         for i, point in enumerate(self.CUBE):
             # determine projected point location
-            _p = self.projected_point(point)
+
+            _p = self.projected_point(point, x_rad, y_rad, z_rad)
 
             # draw and store the dot
             self.d_points.append(self.master.create_oval(as_dot(_p), fill=DEBUG_CLRS[i]))
 
             # connect lines + adjust initial depth
             if i in T_CON:
-                _p2 = self.projected_point(self.CUBE[T_CON[i]])
+                _p2 = self.projected_point(self.CUBE[T_CON[i]], x_rad, y_rad, z_rad)
                 self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]),
                                                             fill='RED'))
                 self.adj_line(_p, _p2)
 
             if i in M_CON:
-                _p2 = self.projected_point(self.CUBE[M_CON[i]])
+                _p2 = self.projected_point(self.CUBE[M_CON[i]], x_rad, y_rad, z_rad)
                 self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]),
                                                             fill='RED'))
                 self.adj_line(_p, _p2)
 
             if i in D_CON:
-                _p2 = self.projected_point(self.CUBE[D_CON[i]])
+                _p2 = self.projected_point(self.CUBE[D_CON[i]], x_rad, y_rad, z_rad)
                 self.d_lines.append(self.master.create_line(int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]),
                                                             fill='RED'))
                 self.adj_line(_p, _p2)
@@ -180,10 +153,10 @@ class RubikLayer:
             else:
                 self.master.tag_raise(self.d_points[i])
 
-        peak = max(map(lambda x: self.projected_point(x), self.CUBE), key=lambda x: x[2])
+        peak = max(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE), key=lambda x: x[2])
 
         for face in self._faces:
-            ps = list(map(lambda x: self.projected_point(x), list(self.CUBE[z] for z in CUBE_FACES[face])))
+            ps = list(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), list(self.CUBE[z] for z in CUBE_FACES[face])))
             coords = tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps)))
             pol = self.master.create_polygon(coords, fill=self.master.color_scheme[face])
             self.d_faces.append(pol)
@@ -206,27 +179,23 @@ class RubikLayer:
         else:
             self.master.tag_raise(self.d_lines[-1])
 
-    def projected_point(self, p, shift=True):
+    def projected_point(self, p, x_rad, y_rad, z_rad, shift=True):
         """
         This method takes a point and applies the appropriate rotations.
 
         :param matrix p: point to transform
+        :param float x_rad: radian for x-axis
+        :param float y_rad: radian for y-axis
+        :param float z_rad: radian for z-axis
         :param bool shift: whether to perform shift for canvas
 
         :return: projected point
         :rtype: matrix
         """
-        _p = self.project(p)
+        _p = project(p, x_rad, y_rad, z_rad)
         _p *= SIDE_WIDTH
 
-        # print(self.project(reshape((1 / CANVAS_WDT) * self.center, (3, 1))))
         return add(_p, reshape(self.center, (3, 1))) if shift else _p
-
-    def project(self, p):
-        _p = rot_x(p, self.ytheta)
-        _p = rot_y(_p, self.xtheta)
-        _p = rot_z(_p, self.ztheta)
-        return _p
 
     def is_behind(self, *args):
         """

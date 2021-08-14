@@ -16,13 +16,13 @@ class RubikCanvas(Canvas):
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
         self.color_scheme = CUBE_CLRS.copy()
 
-        self.layers = [RubikLayer(self, -1, exclude_face={'BOTTOM'}),
-                       RubikLayer(self, exclude_face={'TOP', 'BOTTOM'}),
-                       RubikLayer(self, 1, exclude_face={'TOP'})]
-
         self.xtheta = X_THETA
         self.ytheta = Y_THETA
         self.ztheta = Z_THETA
+
+        self.layers = [RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA, y_offset=-1, exclude_face={'BOTTOM'}),
+                       RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA, exclude_face={'TOP', 'BOTTOM'}),
+                       RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA, y_offset=1, exclude_face={'TOP'})]
 
         self.d_lines = []
         self.d_points = []
@@ -77,14 +77,6 @@ class RubikCanvas(Canvas):
     @xtheta.setter
     def xtheta(self, v):
         self._xtheta = adjust_theta(v)
-        for layer in self.layers:
-            layer.xtheta = self._xtheta
-
-    def reset(self):
-        self.xtheta = X_THETA
-        self.ytheta = Y_THETA
-        self.ztheta = Z_THETA
-        self.refresh()
 
     @property
     def ytheta(self):
@@ -93,8 +85,6 @@ class RubikCanvas(Canvas):
     @ytheta.setter
     def ytheta(self, v):
         self._ytheta = adjust_theta(v)
-        for layer in self.layers:
-            layer.ytheta = self._ytheta
 
     @property
     def ztheta(self):
@@ -103,8 +93,6 @@ class RubikCanvas(Canvas):
     @ztheta.setter
     def ztheta(self, v):
         self._ztheta = adjust_theta(v)
-        for layer in self.layers:
-            layer.ztheta = self._ztheta
 
     def set_xy(self, e):
         """
@@ -115,26 +103,31 @@ class RubikCanvas(Canvas):
         self.last_pos.x = e.x_root
         self.last_pos.y = e.y_root
 
+    def reset(self):
+        self.xtheta = X_THETA
+        self.ytheta = Y_THETA
+        self.ztheta = Z_THETA
+        for layer in self.layers:
+            layer.draw_cube(X_THETA, Y_THETA, Z_THETA)
+        self.refresh()
+
     def refresh(self):
         for layer in self.layers:
-            layer.draw_cube()
+            layer.draw_cube(self.xtheta, self.ytheta, self.ztheta)
 
     def on_drag(self, e):
         """
         This is the command that triggers when dragging on the canvas. This makes sure that
         the change in axis calls for transformation of the cube.
         """
-        d_x = tan((self.last_pos.x - e.x_root) / (2 * SIDE_WIDTH))
+        d_x = -tan((self.last_pos.x - e.x_root) / (2 * SIDE_WIDTH))
         d_y = tan((self.last_pos.y - e.y_root) / (2 * SIDE_WIDTH))
 
-        self.xtheta += -d_x
+        self.xtheta += d_x
         self.ytheta += d_y
 
         self.last_pos.x = e.x_root
         self.last_pos.y = e.y_root
-
-        for layer in self.layers:
-            layer.set_thetas(self.xtheta, self.ytheta)
 
         self.event_generate('<<drag>>')
         self.refresh()

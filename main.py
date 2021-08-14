@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
         :rtype: None
         """
-        rubik_canvas.ytheta = (control_panel.sc_xchange.get() / 180) * pi
+        rubik_canvas.ytheta = to_rad(control_panel.sc_xchange.get())
         rubik_canvas.refresh()
 
     def ychange(e):
