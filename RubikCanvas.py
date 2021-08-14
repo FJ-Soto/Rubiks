@@ -2,8 +2,9 @@ from tkinter import *
 
 from numpy import tan
 
-from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, CENT_POINT, SIDE_WIDTH, CUBE_CLRS
+from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, SIDE_WIDTH, CUBE_CLRS
 from CONSTANTS import X_THETA, Y_THETA, Z_THETA
+from CONSTANTS import SHOW_FACES, SHOW_OUTLINE, SHOW_POINTS
 from Coordinate import Coordinate
 from UtilityFunctions import adjust_theta
 
@@ -16,19 +17,21 @@ class RubikCanvas(Canvas):
         self.config(highlightthickness=1, highlightbackground=OUT_CLR)
         self.color_scheme = CUBE_CLRS.copy()
 
-        self.xtheta = X_THETA
-        self.ytheta = Y_THETA
-        self.ztheta = Z_THETA
+        self._xtheta = X_THETA
+        self._ytheta = Y_THETA
+        self._ztheta = Z_THETA
 
-        self.layers = [RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA, y_offset=-1, exclude_face={'BOTTOM'}),
-                       RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA, exclude_face={'TOP', 'BOTTOM'}),
-                       RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA, y_offset=1, exclude_face={'TOP'})]
+        self.layers = [RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA,
+                                  show_faces=SHOW_FACES, show_outline=SHOW_OUTLINE, show_points=SHOW_POINTS,
+                                  y_offset=-1, exclude_face={'BOTTOM'}),
+                       RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA,
+                                  show_faces=SHOW_FACES, show_outline=SHOW_OUTLINE, show_points=SHOW_POINTS,
+                                  exclude_face={'TOP', 'BOTTOM'}),
+                       RubikLayer(self, x_rad=X_THETA, y_rad=Y_THETA, z_rad=Z_THETA,
+                                  show_faces=SHOW_FACES, show_outline=SHOW_OUTLINE, show_points=SHOW_POINTS,
+                                  y_offset=1, exclude_face={'TOP'})]
 
-        self.d_lines = []
-        self.d_points = []
-        self.d_faces = []
         self.last_pos = Coordinate()
-        self.center = CENT_POINT
 
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.on_drag)
@@ -45,7 +48,7 @@ class RubikCanvas(Canvas):
     def show_clrs(self, v):
         self._show_clrs = v
         for layer in self.layers:
-            layer.show_clrs = v
+            layer.show_faces = v
         self.refresh()
 
     @property
@@ -77,6 +80,7 @@ class RubikCanvas(Canvas):
     @xtheta.setter
     def xtheta(self, v):
         self._xtheta = adjust_theta(v)
+        self.refresh()
 
     @property
     def ytheta(self):
@@ -85,6 +89,7 @@ class RubikCanvas(Canvas):
     @ytheta.setter
     def ytheta(self, v):
         self._ytheta = adjust_theta(v)
+        self.refresh()
 
     @property
     def ztheta(self):
@@ -93,6 +98,7 @@ class RubikCanvas(Canvas):
     @ztheta.setter
     def ztheta(self, v):
         self._ztheta = adjust_theta(v)
+        self.refresh()
 
     def set_xy(self, e):
         """

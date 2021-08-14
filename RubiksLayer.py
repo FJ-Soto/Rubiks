@@ -10,7 +10,7 @@ from numpy import reshape, add, matrix
 
 
 class RubikLayer:
-    def __init__(self, master, x_rad, y_rad, z_rad, y_offset=0, x_offset=0, exclude_face=None):
+    def __init__(self, master, x_rad, y_rad, z_rad, show_faces, show_outline, show_points, y_offset=0, x_offset=0, exclude_face=None):
         """
         This initializes an instance of a drawable Rubik layer.
 
@@ -27,9 +27,12 @@ class RubikLayer:
         self.x_offset = x_offset
         self.y_offset = y_offset
 
-        self.show_clrs = True
-        self.show_outline = False
-        self.show_points = False
+        self.show_faces = show_faces
+        self.show_outline = show_outline
+        self.show_points = show_points
+        self._faces_showing = not self.show_faces
+        self._outline_showing = not self.show_outline
+        self._points_showing = not self.show_points
 
         self.d_lines = []
         self.d_points = []
@@ -52,67 +55,67 @@ class RubikLayer:
         written in segments.
         """
         l_count = 0
-        for i, point in enumerate(self.CUBE):
-            _p = self.projected_point(point, x_rad, y_rad, z_rad)
+        if self.show_faces or self.show_outline or self.show_points:
+            for i, point in enumerate(self.CUBE):
+                _p = self.projected_point(point, x_rad, y_rad, z_rad)
 
-            if self.show_points:
-                self.master.itemconfigure(self.d_points[i], state=NORMAL)
-                self.master.coords(self.d_points[i], as_dot(_p))
-                # adjust for depth
-                if self.is_behind(_p[2]):
-                    self.master.tag_lower(self.d_points[i])
-                else:
-                    self.master.tag_raise(self.d_points[i])
-            else:
-                self.master.itemconfigure(self.d_points[i], state=HIDDEN)
+                if self.show_points:
+                    self.master.itemconfigure(self.d_points[i], state=NORMAL)
+                    self.master.coords(self.d_points[i], as_dot(_p))
+                    # adjust for depth
+                    if self.is_behind(_p[2]):
+                        self.master.tag_lower(self.d_points[i])
+                    else:
+                        self.master.tag_raise(self.d_points[i])
+                    self._points_showing = True
+                elif self._points_showing:
+                    self._points_showing = False
+                    for p in self.d_points:
+                        self.master.itemconfigure(p, state=HIDDEN)
 
-            # use a dictionary to determine how the lines should be connected
-            # follow T -> M -> D to ensure that l_count is in sync to the order in which the lines where added
-            if i in T_CON:
+                # use a dictionary to determine how the lines should be connected
+                # follow T -> M -> D to ensure that l_count is in sync to the order in which the lines where added
                 if self.show_outline:
-                    self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
-                    _p2 = self.projected_point(self.CUBE[T_CON[i]])
-                    self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
-                else:
-                    self.master.itemconfigure(self.d_lines[l_count], state=HIDDEN)
-                l_count += 1
+                    if i in T_CON:
+                        self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
+                        _p2 = self.projected_point(self.CUBE[T_CON[i]], x_rad, y_rad, z_rad)
+                        self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
+                        l_count += 1
 
-            if i in M_CON:
-                if self.show_outline:
-                    self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
-                    _p2 = self.projected_point(self.CUBE[M_CON[i]])
-                    self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
-                else:
-                    self.master.itemconfigure(self.d_lines[l_count], state=HIDDEN)
-                l_count += 1
+                    if i in M_CON:
+                        self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
+                        _p2 = self.projected_point(self.CUBE[M_CON[i]], x_rad, y_rad, z_rad)
+                        self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
+                        l_count += 1
 
-            if i in D_CON:
-                if self.show_outline:
-                    self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
-                    _p2 = self.projected_point(self.CUBE[D_CON[i]])
-                    self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
-                else:
-                    self.master.itemconfigure(self.d_lines[l_count], state=HIDDEN)
-                l_count += 1
+                    if i in D_CON:
+                        self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
+                        _p2 = self.projected_point(self.CUBE[D_CON[i]], x_rad, y_rad, z_rad)
+                        self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
+                        l_count += 1
+                        self._outline_showing = True
+                elif self._outline_showing:
+                    self._outline_showing = False
+                    for line in self.d_lines:
+                        self.master.itemconfigure(line, state=HIDDEN)
 
         # self.CUBE = list(map(lambda x: project(x, x_rad, y_rad, z_rad), self.CUBE))
 
-        if self.show_clrs:
+        if self.show_faces:
             # determine the peak point
-            peak = max(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE), key=lambda x: x[2])
+            proj_ps = list(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE))
+            # peak = max(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE), key=lambda x: x[2])
+            peak = max(proj_ps, key=lambda x: x[2])
 
             for i, face in enumerate(self._faces):
-                # compute projected face points
-                ps = list(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), list(self.CUBE[z] for z in CUBE_FACES[face])))
-
-                # determine if any of the projected points connect with the peak and show or hide
+                ps = list(proj_ps[p] for p in CUBE_FACES[face])
                 if any((peak == p).all() for p in ps):
                     self.master.coords(self.d_faces[i],
                                        tuple(chain.from_iterable(map(lambda x: (int(x[0]), int(x[1])), ps))))
                     self.master.itemconfigure(self.d_faces[i], state=NORMAL, fill=self.master.color_scheme[face])
                 else:
                     self.master.itemconfigure(self.d_faces[i], state=HIDDEN)
-        else:
+        elif self._faces_showing:
             for face in self.d_faces:
                 self.master.itemconfigure(face, state=HIDDEN)
 

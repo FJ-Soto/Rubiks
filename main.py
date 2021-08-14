@@ -63,7 +63,6 @@ if __name__ == '__main__':
         :rtype: None
         """
         rubik_canvas.ytheta = to_rad(control_panel.sc_xchange.get())
-        rubik_canvas.refresh()
 
     def ychange(e):
         """
@@ -74,7 +73,6 @@ if __name__ == '__main__':
         :rtype: None
         """
         rubik_canvas.xtheta = to_rad(control_panel.sc_ychange.get())
-        rubik_canvas.refresh()
 
     def zchange(e):
         """
@@ -85,7 +83,6 @@ if __name__ == '__main__':
         :rtype: None
         """
         rubik_canvas.ztheta = to_rad(control_panel.sc_zchange.get())
-        rubik_canvas.refresh()
 
     def rubiksDrag(e):
         """

@@ -80,6 +80,9 @@ OCTANTS = {(1, -1, 1): 1,
 
 # Control Panel
 TICK_INT = 90
+SHOW_FACES = True
+SHOW_OUTLINE = False
+SHOW_POINTS = False
 
 
 # the x and y thetas are opposite signed since (0, 0)
