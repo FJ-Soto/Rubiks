@@ -72,8 +72,19 @@ class ControlPanel(Frame):
                command=lambda *args: self.event_generate("<<reset color scheme>>")
                ).grid(row=7, column=3, padx=10, sticky=EW)
 
+        self.add_label(text="Rubik Rotations", row=9)
+
+        self.cube_notation = {'U': Button(self)}
+        for i, rot in enumerate(self.cube_notation):
+            self.cube_notation[rot].config(text=rot)
+            self.cube_notation[rot].bind('<Button-1>', self.cube_rotate)
+            self.cube_notation[rot].grid(row=10, column=0, sticky=NSEW)
+
+    def cube_rotate(self, e):
+        self.event_generate(f'<<rotate-{e.widget.cget("text")}>>')
+
     def change_color(self, e):
-        col = colorchooser.askcolor(color=e.widget.cget("bg"), title="SHOW")
+        col = colorchooser.askcolor(color=e.widget.cget("bg"), title="Select new color")
         e.widget.config(bg=col[1])
         self.event_generate("<<color scheme change>>")
 

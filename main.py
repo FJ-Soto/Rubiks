@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
         :rtype: None
         """
-        rubik_canvas.show_clrs = control_panel.show_clrs.get()
+        rubik_canvas.show_faces = control_panel.show_clrs.get()
 
     def onChangeOutlineChange(e):
         """
@@ -117,9 +117,13 @@ if __name__ == '__main__':
         control_panel.set_colors(CUBE_CLRS)
         adjColorScheme(None)
 
+    def rotate_u(e):
+        rotate_cube('U')
+
+    def rotate_cube(r):
+        rubik_canvas.rotate(r)
 
     rubik_canvas.refresh()
-
     rubik_canvas.bind("<<drag>>", rubiksDrag)
 
     control_panel.bind("<<Show Color Change>>", onChangeColorChange)
@@ -131,5 +135,6 @@ if __name__ == '__main__':
     control_panel.bind("<<reset canvas>>", refresh)
     control_panel.bind("<<color scheme change>>", adjColorScheme)
     control_panel.bind("<<reset color scheme>>", reset_color_scheme)
+    control_panel.bind("<<rotate-U>>", rotate_u)
 
     root.mainloop()

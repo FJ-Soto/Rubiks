@@ -55,56 +55,52 @@ class RubikLayer:
         written in segments.
         """
         l_count = 0
-        if self.show_faces or self.show_outline or self.show_points:
-            for i, point in enumerate(self.CUBE):
-                _p = self.projected_point(point, x_rad, y_rad, z_rad)
+        for i, point in enumerate(self.CUBE):
+            _p = self.projected_point(point, x_rad, y_rad, z_rad)
 
-                if self.show_points:
-                    self.master.itemconfigure(self.d_points[i], state=NORMAL)
-                    self.master.coords(self.d_points[i], as_dot(_p))
-                    # adjust for depth
-                    if self.is_behind(_p[2]):
-                        self.master.tag_lower(self.d_points[i])
-                    else:
-                        self.master.tag_raise(self.d_points[i])
-                    self._points_showing = True
-                elif self._points_showing:
-                    self._points_showing = False
-                    for p in self.d_points:
-                        self.master.itemconfigure(p, state=HIDDEN)
+            if self.show_points:
+                self.master.itemconfigure(self.d_points[i], state=NORMAL)
+                self.master.coords(self.d_points[i], as_dot(_p))
+                # adjust for depth
+                if self.is_behind(_p[2]):
+                    self.master.tag_lower(self.d_points[i])
+                else:
+                    self.master.tag_raise(self.d_points[i])
+                self._points_showing = True
+            elif self._points_showing:
+                self._points_showing = False
+                for p in self.d_points:
+                    self.master.itemconfigure(p, state=HIDDEN)
 
-                # use a dictionary to determine how the lines should be connected
-                # follow T -> M -> D to ensure that l_count is in sync to the order in which the lines where added
-                if self.show_outline:
-                    if i in T_CON:
-                        self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
-                        _p2 = self.projected_point(self.CUBE[T_CON[i]], x_rad, y_rad, z_rad)
-                        self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
-                        l_count += 1
+            # use a dictionary to determine how the lines should be connected
+            # follow T -> M -> D to ensure that l_count is in sync to the order in which the lines where added
+            if self.show_outline:
+                if i in T_CON:
+                    self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
+                    _p2 = self.projected_point(self.CUBE[T_CON[i]], x_rad, y_rad, z_rad)
+                    self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
+                    l_count += 1
 
-                    if i in M_CON:
-                        self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
-                        _p2 = self.projected_point(self.CUBE[M_CON[i]], x_rad, y_rad, z_rad)
-                        self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
-                        l_count += 1
+                if i in M_CON:
+                    self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
+                    _p2 = self.projected_point(self.CUBE[M_CON[i]], x_rad, y_rad, z_rad)
+                    self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
+                    l_count += 1
 
-                    if i in D_CON:
-                        self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
-                        _p2 = self.projected_point(self.CUBE[D_CON[i]], x_rad, y_rad, z_rad)
-                        self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
-                        l_count += 1
-                        self._outline_showing = True
-                elif self._outline_showing:
-                    self._outline_showing = False
-                    for line in self.d_lines:
-                        self.master.itemconfigure(line, state=HIDDEN)
-
-        # self.CUBE = list(map(lambda x: project(x, x_rad, y_rad, z_rad), self.CUBE))
+                if i in D_CON:
+                    self.master.itemconfigure(self.d_lines[l_count], state=NORMAL)
+                    _p2 = self.projected_point(self.CUBE[D_CON[i]], x_rad, y_rad, z_rad)
+                    self.master.coords(self.d_lines[l_count], int(_p[0]), int(_p[1]), int(_p2[0]), int(_p2[1]))
+                    l_count += 1
+                    self._outline_showing = True
+            elif self._outline_showing:
+                self._outline_showing = False
+                for line in self.d_lines:
+                    self.master.itemconfigure(line, state=HIDDEN)
 
         if self.show_faces:
             # determine the peak point
             proj_ps = list(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE))
-            # peak = max(map(lambda x: self.projected_point(x, x_rad, y_rad, z_rad), self.CUBE), key=lambda x: x[2])
             peak = max(proj_ps, key=lambda x: x[2])
 
             for i, face in enumerate(self._faces):
@@ -115,7 +111,9 @@ class RubikLayer:
                     self.master.itemconfigure(self.d_faces[i], state=NORMAL, fill=self.master.color_scheme[face])
                 else:
                     self.master.itemconfigure(self.d_faces[i], state=HIDDEN)
+                self._faces_showing = True
         elif self._faces_showing:
+            self._faces_showing = False
             for face in self.d_faces:
                 self.master.itemconfigure(face, state=HIDDEN)
 

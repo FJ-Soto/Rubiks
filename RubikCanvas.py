@@ -1,6 +1,6 @@
 from tkinter import *
 
-from numpy import tan
+from numpy import tan, pi
 
 from CONSTANTS import OUT_CLR, CANVAS_WDT, CANVAS_HGT, SIDE_WIDTH, CUBE_CLRS
 from CONSTANTS import X_THETA, Y_THETA, Z_THETA
@@ -36,16 +36,16 @@ class RubikCanvas(Canvas):
         self.bind("<Button-1>", self.set_xy)
         self.bind("<B1-Motion>", self.on_drag)
 
-        self.show_clrs = True
+        self.show_faces = True
         self.show_outline = False
         self.show_points = False
 
     @property
-    def show_clrs(self):
+    def show_faces(self):
         return self._show_clrs
 
-    @show_clrs.setter
-    def show_clrs(self, v):
+    @show_faces.setter
+    def show_faces(self, v):
         self._show_clrs = v
         for layer in self.layers:
             layer.show_faces = v
@@ -121,19 +121,24 @@ class RubikCanvas(Canvas):
         for layer in self.layers:
             layer.draw_cube(self.xtheta, self.ytheta, self.ztheta)
 
+    def rotate(self, r):
+        if r == 'U':
+            self.layers[0].draw_cube(self.xtheta + 1/2 * pi, self.ytheta, self.ztheta)
+
     def on_drag(self, e):
         """
         This is the command that triggers when dragging on the canvas. This makes sure that
         the change in axis calls for transformation of the cube.
         """
-        d_x = -tan((self.last_pos.x - e.x_root) / (2 * SIDE_WIDTH))
-        d_y = tan((self.last_pos.y - e.y_root) / (2 * SIDE_WIDTH))
+        if self.show_faces or self.show_outline or self.show_points:
+            d_x = -tan((self.last_pos.x - e.x_root) / (2 * SIDE_WIDTH))
+            d_y = tan((self.last_pos.y - e.y_root) / (2 * SIDE_WIDTH))
 
-        self.xtheta += d_x
-        self.ytheta += d_y
+            self.xtheta += d_x
+            self.ytheta += d_y
 
-        self.last_pos.x = e.x_root
-        self.last_pos.y = e.y_root
+            self.last_pos.x = e.x_root
+            self.last_pos.y = e.y_root
 
-        self.event_generate('<<drag>>')
-        self.refresh()
+            self.event_generate('<<drag>>')
+            self.refresh()

@@ -80,7 +80,7 @@ OCTANTS = {(1, -1, 1): 1,
 
 # Control Panel
 TICK_INT = 90
-SHOW_FACES = True
+SHOW_FACES = False
 SHOW_OUTLINE = False
 SHOW_POINTS = False
 
