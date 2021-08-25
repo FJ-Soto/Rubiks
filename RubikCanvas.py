@@ -79,8 +79,7 @@ class RubikCanvas(Canvas):
 
     @xtheta.setter
     def xtheta(self, v):
-        self._xtheta = adjust_theta(v)
-        self.refresh()
+        self._xtheta = v
 
     @property
     def ytheta(self):
@@ -88,8 +87,7 @@ class RubikCanvas(Canvas):
 
     @ytheta.setter
     def ytheta(self, v):
-        self._ytheta = adjust_theta(v)
-        self.refresh()
+        self._ytheta = v
 
     @property
     def ztheta(self):
@@ -98,7 +96,6 @@ class RubikCanvas(Canvas):
     @ztheta.setter
     def ztheta(self, v):
         self._ztheta = adjust_theta(v)
-        self.refresh()
 
     def set_xy(self, e):
         """
@@ -114,16 +111,21 @@ class RubikCanvas(Canvas):
         self.ytheta = Y_THETA
         self.ztheta = Z_THETA
         for layer in self.layers:
-            layer.draw_cube(X_THETA, Y_THETA, Z_THETA)
-        self.refresh()
+            layer.reset()
+        self.move_cube()
+
+    def move_cube(self):
+        for layer in self.layers:
+            layer.move(self.xtheta, self.ytheta, self.ztheta)
 
     def refresh(self):
         for layer in self.layers:
-            layer.draw_cube(self.xtheta, self.ytheta, self.ztheta)
+            layer.redraw()
 
     def rotate(self, r):
         if r == 'U':
-            self.layers[0].draw_cube(self.xtheta + 1/2 * pi, self.ytheta, self.ztheta)
+            self.layers[0].move(self.xtheta + 1 / 2 * pi, self.ytheta, self.ztheta)
+        self.refresh()
 
     def on_drag(self, e):
         """
@@ -134,11 +136,10 @@ class RubikCanvas(Canvas):
             d_x = -tan((self.last_pos.x - e.x_root) / (2 * SIDE_WIDTH))
             d_y = tan((self.last_pos.y - e.y_root) / (2 * SIDE_WIDTH))
 
-            self.xtheta += d_x
-            self.ytheta += d_y
+            self.xtheta = d_x / 2.5
+            self.ytheta = d_y / 2.5
 
             self.last_pos.x = e.x_root
             self.last_pos.y = e.y_root
 
-            self.event_generate('<<drag>>')
-            self.refresh()
+            self.move_cube()
